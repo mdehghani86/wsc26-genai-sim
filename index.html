@@ -331,33 +331,100 @@
       </div>
     </section>
 
-    <!-- MODEL CREATION (placeholder) -->
+    <!-- MODEL CREATION -->
     <section class="page" data-page="model-creation">
       <header class="page-head">
-        <div class="page-eyebrow">Phase 1b</div>
+        <div class="page-eyebrow">Phase 1b &middot; vibe coding with a validation gate</div>
         <h1 class="page-title">Model creation</h1>
-        <p class="page-lede">From the Phase 0 schema and the Phase 1a fitted distribution, generate a runnable SimPy model. Three implementation paths sit side by side here so the reader can compare a one-shot LLM, a multi-agent crew, and an MCP-driven tool-use loop on the same prompt.</p>
+        <p class="page-lede">A five-part structured prompt produces a SimPy file; Pyodide runs it; a five-check validation gate decides whether the artefact may travel forward to Phase 2. Off-the-shelf packages such as Simio or Arena enforce these invariants at draw time on a canvas. Here we enforce them after the fact, automatically, on probabilistic LLM output.</p>
       </header>
-      <div class="cards">
-        <div class="card">
-          <div class="card-tag">Path 1 &middot; baseline</div>
-          <div class="card-title">Vibe-coding (single prompt)</div>
-          <div class="card-body">A single structured prompt produces one SimPy file. Reusing the 2025 CIP2 prompt as the baseline, scored on first-try success, lines of code, and prompt iterations to a working state.</div>
+
+      <!-- Step 1: prompt -->
+      <div class="step">
+        <div class="step-head">
+          <span class="step-num">1</span>
+          <span class="step-title">Five-part structured prompt</span>
+          <span class="step-badge mono">role &middot; goal &middot; scenario &middot; inputs &middot; output</span>
         </div>
-        <div class="card">
-          <div class="card-tag">Path 2 &middot; multi-agent</div>
-          <div class="card-title">Builder + Validator + Explainer</div>
-          <div class="card-body">Builder writes the SimPy file. Validator runs it and compares realised utilisation, queue length, and mean wait against Allen-Cunneen and Erlang-C. Explainer writes the trace narration that becomes the Phase 2 deliverable.</div>
-        </div>
-        <div class="card">
-          <div class="card-tag">Path 3 &middot; MCP</div>
-          <div class="card-title">Tool-call loop (define, wire, run, query)</div>
-          <div class="card-body">The LLM calls typed tools exposed by a SimPy MCP server: <code>define_resource</code>, <code>define_process</code>, <code>wire</code>, <code>run</code>, <code>query_kpis</code>. State lives in the simulator, not in the LLM transcript.</div>
+        <div class="step-body">
+          <div class="prompt-five">
+            <div class="prompt-row"><span class="prompt-key">Role</span><span class="prompt-val">Simulation engineer.</span></div>
+            <div class="prompt-row"><span class="prompt-key">Goal</span><span class="prompt-val">Produce a runnable SimPy file for the Phase 0 problem.</span></div>
+            <div class="prompt-row"><span class="prompt-key">Scenario</span><span class="prompt-val">ED with two triage tiers (urgent, non-urgent), shared imaging, fixed bed pools. Walk-in arrival to admit-or-discharge. Ambulance routing, no-shows, and inpatient bed flow are out of scope (copied from the Phase 0 scope row).</span></div>
+            <div class="prompt-row"><span class="prompt-key">Inputs</span><span class="prompt-val">Arrival generator from Phase 1a (a single Python expression). Service-time distributions: triangular for treatment, gamma for imaging.</span></div>
+            <div class="prompt-row"><span class="prompt-key">Output</span><span class="prompt-val">One Python file, no dependencies beyond SimPy and the standard library. One <code>simpy.Resource</code> per pool, one worker process per server slot, per-patient and per-pool metrics, an event log.</span></div>
+          </div>
         </div>
       </div>
+
+      <!-- Step 2: generated artefact -->
+      <div class="step">
+        <div class="step-head">
+          <span class="step-num">2</span>
+          <span class="step-title">Generated SimPy file</span>
+          <span class="step-badge mono is-good">validated</span>
+        </div>
+        <div class="step-body">
+          <p style="font-size:14px; line-height:1.55; margin-bottom:12px;">~400 lines, single file. Lives at <a href="https://github.com/mdehghani86/wsc2026-genai-simulation-tutorial/blob/main/phase1b/er_simulation.py" target="_blank" rel="noopener"><code>phase1b/er_simulation.py</code></a> in the companion repository. The interactive 2025 demo of this file is preserved at <a href="legacy-2025/index.html" target="_blank" rel="noopener">legacy-2025/index.html</a> (dark theme, single-page UI).</p>
+          <div class="snippet-frame">
+            <div class="snippet-head">
+              <span class="snippet-tag">opening lines</span>
+            </div>
+            <pre class="snippet-body"># Phase 1b artefact: validated SimPy ED model.
+# Generated from the five-part prompt, accepted by the validation gate.
+import simpy, random, statistics
+from dataclasses import dataclass, field
+
+@dataclass
+class Patient:
+    pid: int
+    severity: int
+    bed_type: str
+    arrival_time: float
+    treatment_start: float | None = None
+    treatment_end:   float | None = None
+    ...
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: validation gate -->
+      <div class="step">
+        <div class="step-head">
+          <span class="step-num">3</span>
+          <span class="step-title">Validation gate (five checks; all must pass)</span>
+          <span class="step-badge mono is-good">all passed</span>
+        </div>
+        <div class="step-body">
+          <ul class="validate-list">
+            <li class="ok"><strong>Process logic.</strong> Patient flow matches the Phase 0 scope row end to end (walk-in &rarr; triage &rarr; treatment &rarr; admit-or-discharge).</li>
+            <li class="ok"><strong>Connectivity.</strong> Each producer wires into the declared consumer; no orphan resources.</li>
+            <li class="ok"><strong>Parallel vs sequential.</strong> A pool with capacity <em>c</em> serves <em>c</em> patients in parallel; not one at a time behind a manager process. (One SimPy worker process per bed slot.)</li>
+            <li class="ok"><strong>Distributions.</strong> Sampled service times match the Phase 1a fit in mean, variance, and support.</li>
+            <li class="ok"><strong>Theory.</strong> Realised &rho;, L<sub>q</sub>, W<sub>q</sub> within tolerance of Erlang-C and Allen-Cunneen across a 1-8 by 1-12 capacity grid.</li>
+          </ul>
+          <p class="step-note">If any check fails, the failing check is appended to the next prompt verbatim and only the affected section is regenerated. Iterations are bounded; if three rounds do not pass, the case is handed off to the multi-agent or MCP path.</p>
+        </div>
+      </div>
+
       <div class="connect-bar">
-        <div class="connect-key">Consumes</div>
-        <div class="connect-val">Phase 0 (scope row) and Phase 1a (fitted distribution). The 2025 ER reference model is preserved at <a href="legacy-2025/index.html" target="_blank" rel="noopener">legacy-2025/index.html</a>.</div>
+        <div class="connect-key">Hands off to</div>
+        <div class="connect-val">Phase 2 (<a href="#/execution">Execution</a>) reads this file and produces the trace narration. Phase 3 (<a href="#/experimentation">Experimentation</a>) runs scenario sweeps against it and scores them against the Phase 0 KPI list.</div>
+      </div>
+
+      <!-- forward-looking other paths -->
+      <div class="cards" style="margin-top:22px">
+        <div class="card">
+          <div class="card-tag">Alternative path &middot; planned</div>
+          <div class="card-title">Multi-agent (Builder + Validator + Explainer)</div>
+          <div class="card-body">Same five-check gate, split across three agents. Builder writes the file, Validator runs the gate, Explainer drafts the Phase 2 narration. Useful when one of the five checks fails on the same regeneration repeatedly.</div>
+        </div>
+        <div class="card">
+          <div class="card-tag">Alternative path &middot; planned</div>
+          <div class="card-title">MCP tool-call loop</div>
+          <div class="card-body">The LLM does not write Python at all; it calls typed tools (<code>define_resource</code>, <code>wire</code>, <code>run</code>, <code>validate_against_theory</code>). State lives in the simulator, the validation gate runs as a tool, and there is no SimPy file to validate after the fact.</div>
+        </div>
       </div>
     </section>
 
