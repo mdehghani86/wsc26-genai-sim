@@ -336,11 +336,28 @@
       <header class="page-head">
         <div class="page-eyebrow">Phase 1b</div>
         <h1 class="page-title">Model creation</h1>
-        <p class="page-lede">From the Phase 0 schema and the Phase 1a fitted distribution, generate a runnable SimPy model. This tab will land next.</p>
+        <p class="page-lede">From the Phase 0 schema and the Phase 1a fitted distribution, generate a runnable SimPy model. Three implementation paths sit side by side here so the reader can compare a one-shot LLM, a multi-agent crew, and an MCP-driven tool-use loop on the same prompt.</p>
       </header>
-      <div class="placeholder">
-        <div class="placeholder-title">In progress</div>
-        <div class="placeholder-body">Three implementation paths will be compared: vibe-coding (one prompt, one file), multi-agent (planner, coder, validator), and MCP-driven tool use. The 2025 ER model is available now at <a href="legacy-2025/index.html" target="_blank" rel="noopener">legacy-2025/index.html</a>.</div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-tag">Path 1 &middot; baseline</div>
+          <div class="card-title">Vibe-coding (single prompt)</div>
+          <div class="card-body">A single structured prompt produces one SimPy file. Reusing the 2025 CIP2 prompt as the baseline, scored on first-try success, lines of code, and prompt iterations to a working state.</div>
+        </div>
+        <div class="card">
+          <div class="card-tag">Path 2 &middot; multi-agent</div>
+          <div class="card-title">Builder + Validator + Explainer</div>
+          <div class="card-body">Builder writes the SimPy file. Validator runs it and compares realised utilisation, queue length, and mean wait against Allen-Cunneen and Erlang-C. Explainer writes the trace narration that becomes the Phase 2 deliverable.</div>
+        </div>
+        <div class="card">
+          <div class="card-tag">Path 3 &middot; MCP</div>
+          <div class="card-title">Tool-call loop (define, wire, run, query)</div>
+          <div class="card-body">The LLM calls typed tools exposed by a SimPy MCP server: <code>define_resource</code>, <code>define_process</code>, <code>wire</code>, <code>run</code>, <code>query_kpis</code>. State lives in the simulator, not in the LLM transcript.</div>
+        </div>
+      </div>
+      <div class="connect-bar">
+        <div class="connect-key">Consumes</div>
+        <div class="connect-val">Phase 0 (scope row) and Phase 1a (fitted distribution). The 2025 ER reference model is preserved at <a href="legacy-2025/index.html" target="_blank" rel="noopener">legacy-2025/index.html</a>.</div>
       </div>
     </section>
 
@@ -375,17 +392,34 @@
       <header class="page-head">
         <div class="page-eyebrow">Extension</div>
         <h1 class="page-title">Agentic AI via Model Context Protocol</h1>
-        <p class="page-lede">An LLM constructs the simulation model by calling typed tools, not by writing one big script.</p>
+        <p class="page-lede">A SimPy MCP server exposes the simulator as a set of typed tools. The LLM does not write Python and does not see the source; it asks the simulator to do things, and the simulator answers. Two demos are planned here: a build-from-scratch loop that contrasts head-to-head with the vibe-coding baseline, and a validation loop that closes the gap most reviewers ask about.</p>
       </header>
-      <div class="placeholder">
-        <div class="placeholder-title">Tool catalogue (preview)</div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-tag">Demo A</div>
+          <div class="card-title">Build the ED model from scratch</div>
+          <div class="card-body">Same Phase 0 prompt as vibe-coding, but the LLM constructs the model through tool calls. Iteration count, success rate, and diagnosability of failures sit next to the vibe-coding baseline so the contrast is direct.</div>
+        </div>
+        <div class="card">
+          <div class="card-tag">Demo B &middot; primary</div>
+          <div class="card-title">Validation loop against queueing theory</div>
+          <div class="card-body">The Validator tool checks realised utilisation, queue length, and mean wait against Allen-Cunneen and Erlang-C. The LLM iterates until tolerances pass, or surfaces the structural bug if they do not. Bakes the WSC 2025 lessons-learned playbook directly into the protocol.</div>
+        </div>
+      </div>
+      <div class="placeholder" style="margin-top:18px">
+        <div class="placeholder-title">Tool catalogue</div>
         <div class="placeholder-body">
           <code>define_resource(name, capacity)</code><br>
           <code>define_process(name, generator_body)</code><br>
           <code>wire(producer, consumer)</code><br>
           <code>run(duration, replications, seed)</code><br>
-          <code>query_kpis(group_by)</code>
+          <code>query_kpis(group_by)</code><br>
+          <code>validate_against_theory(pool, tolerance)</code>
         </div>
+      </div>
+      <div class="connect-bar">
+        <div class="connect-key">Position</div>
+        <div class="connect-val">No published WSC paper has used MCP with a simulator as of writing. PDEVS-LLM (WSC 2025) and SimLLM (Jan 2026) are the closest neighbours and remain code-generation-flavoured; this tab is the protocol-flavoured complement.</div>
       </div>
     </section>
 
