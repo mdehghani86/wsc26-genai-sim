@@ -1,0 +1,2057 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ER Simulation — WSC 2025 GenAI + Simulation Tutorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:         #060912;
+    --bg-2:       #0d1428;
+    --surface:    rgba(20, 30, 56, 0.78);
+    --surface-2:  rgba(28, 40, 70, 0.62);
+    --border:     rgba(255,255,255,0.08);
+    --border-2:   rgba(96, 165, 250, 0.18);
+    --text:       #e8eefb;
+    --text-mut:   #94a4c4;
+    --text-dim:   #5d6f95;
+    --primary:    #3b82f6;   /* blue-500 */
+    --accent:     #60a5fa;   /* blue-400 */
+    --teal:       #2dd4bf;   /* used for "standard" bed pool */
+    --warn:       #f59e0b;   /* amber-500 */
+    --crit:       #ef4444;   /* red-500 — critical pool */
+    --grad:       linear-gradient(135deg, #60a5fa 0%, #2563eb 45%, #0a1224 90%, #000 100%);
+    --btn-grad:   linear-gradient(135deg, #60a5fa 0%, #2563eb 35%, #1e3a8a 70%, #050810 90%, #000 100%);
+    --btn-grad-hover: linear-gradient(135deg, #93c5fd 0%, #3b82f6 35%, #1e40af 65%, #0a1224 88%, #000 100%);
+    --chart-blue:    #3b82f6;
+    --chart-blue-2:  #60a5fa;
+    --chart-deep:    #1e3a8a;
+    --shadow:     0 14px 40px rgba(37, 99, 235, 0.14), 0 2px 10px rgba(0,0,0,0.34);
+    --r:          14px;
+    --r-sm:       9px;
+  }
+  [data-theme="light"] {
+    --bg:         #eef3fb;
+    --bg-2:       #dde6f4;
+    --surface:    rgba(255,255,255,0.88);
+    --surface-2:  rgba(245,249,255,0.92);
+    --border:     rgba(20, 30, 80, 0.08);
+    --border-2:   rgba(37, 99, 235, 0.18);
+    --text:       #0f1b34;
+    --text-mut:   #4d5b7d;
+    --text-dim:   #8a98b5;
+    --shadow:     0 14px 40px rgba(37, 99, 235, 0.10), 0 2px 10px rgba(15,27,52,0.06);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    background:
+      radial-gradient(900px 480px at 82% -8%, rgba(96, 165, 250, 0.18), transparent 60%),
+      radial-gradient(700px 400px at -10% 25%, rgba(37, 99, 235, 0.14), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  [data-theme="light"] body {
+    background:
+      radial-gradient(900px 480px at 82% -8%, rgba(96, 165, 250, 0.14), transparent 60%),
+      radial-gradient(700px 400px at -10% 25%, rgba(37, 99, 235, 0.08), transparent 60%),
+      var(--bg);
+  }
+
+  /* ----- App shell (viewport locked, no scroll) ----- */
+  .app {
+    height: 100vh; width: 100vw;
+    max-width: 1560px; margin: 0 auto;
+    display: flex; flex-direction: column;
+    padding: 22px 28px; gap: 16px;
+  }
+  @media (max-width: 1100px), (max-height: 740px) {
+    html, body { overflow: auto; }
+    .app { height: auto; min-height: 100vh; padding: 18px 20px; gap: 14px; }
+  }
+  @media (max-width: 640px) {
+    .app { padding: 12px 12px 24px; gap: 12px; }
+  }
+
+  /* ----- App bar ----- */
+  .appbar {
+    flex: 0 0 auto;
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 14px 18px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: var(--shadow);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .brand-mark {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--btn-grad);
+    display: grid; place-items: center;
+    box-shadow:
+      0 6px 22px rgba(37, 99, 235, 0.45),
+      0 1px 0 rgba(255,255,255,0.16) inset,
+      0 -1px 0 rgba(0,0,0,0.30) inset;
+    flex-shrink: 0;
+    position: relative; overflow: hidden;
+  }
+  .brand-mark::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 55%);
+    pointer-events: none;
+  }
+  .brand-mark svg { width: 20px; height: 20px; position: relative; z-index: 1; }
+  .brand-text { min-width: 0; }
+  .brand-text h1 {
+    font-size: 14px; margin: 0; font-weight: 700; letter-spacing: -0.01em;
+    background: linear-gradient(135deg, #93c5fd 0%, #3b82f6 60%, #1e3a8a 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  [data-theme="light"] .brand-text h1 {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 60%, #050810 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .brand-text p {
+    font-size: 11px; color: var(--text-mut); margin: 1px 0 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .spacer { flex: 1 1 auto; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px; border-radius: 999px;
+    font-size: 11px; font-weight: 500;
+    background: var(--surface-2); border: 1px solid var(--border);
+    color: var(--text-mut);
+    white-space: nowrap;
+  }
+  .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+  .pill .dot.loading { background: var(--warn); animation: pulse 1.4s infinite; }
+  .pill .dot.error   { background: var(--crit); }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+
+  .icon-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    color: var(--text); cursor: pointer;
+    display: grid; place-items: center;
+    transition: all .15s ease;
+  }
+  .icon-btn:hover { border-color: var(--border-2); transform: translateY(-1px); }
+  .icon-btn svg { width: 16px; height: 16px; }
+
+  .btn-primary {
+    padding: 9px 18px;
+    background: var(--btn-grad);
+    border: 0; border-radius: 9px;
+    color: white; font: inherit; font-weight: 600; font-size: 13px;
+    cursor: pointer;
+    box-shadow:
+      0 8px 22px rgba(37, 99, 235, 0.42),
+      0 1px 0 rgba(255,255,255,0.18) inset,
+      0 -1px 0 rgba(0,0,0,0.30) inset;
+    transition: transform .15s ease, box-shadow .15s ease, background .25s ease;
+    display: inline-flex; align-items: center; gap: 8px;
+    letter-spacing: 0.01em;
+    position: relative; overflow: hidden;
+  }
+  .btn-primary::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 50%);
+    pointer-events: none;
+  }
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: var(--btn-grad-hover);
+    box-shadow:
+      0 12px 30px rgba(37, 99, 235, 0.55),
+      0 1px 0 rgba(255,255,255,0.22) inset,
+      0 -1px 0 rgba(0,0,0,0.30) inset;
+  }
+  .btn-primary:active:not(:disabled) { transform: translateY(0); }
+  .btn-primary:disabled { opacity: .55; cursor: not-allowed; }
+  .btn-primary svg { width: 14px; height: 14px; position: relative; z-index: 1; }
+  .btn-primary span { position: relative; z-index: 1; }
+
+  /* Compact indeterminate progress bar shown next to the run button while
+     the SimPy run is in flight. Pyodide runs synchronously inside this
+     promise so we can't track real progress; this just signals activity. */
+  .sim-progress {
+    width: 90px; height: 4px; border-radius: 999px;
+    background: rgba(96, 165, 250, 0.16);
+    border: 1px solid rgba(96, 165, 250, 0.20);
+    overflow: hidden; position: relative;
+    flex-shrink: 0;
+    opacity: 0; pointer-events: none;
+    transition: opacity .18s ease;
+  }
+  .sim-progress.on { opacity: 1; }
+  .sim-progress::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 40%;
+    background: linear-gradient(90deg, transparent 0%, #60a5fa 30%, #2563eb 70%, transparent 100%);
+    border-radius: 999px;
+    animation: sim-prog 1.05s ease-in-out infinite;
+  }
+  @keyframes sim-prog {
+    0%   { transform: translateX(-100%); }
+    50%  { transform: translateX(150%); }
+    100% { transform: translateX(150%); }
+  }
+  @media (max-width: 480px) {
+    .sim-progress { width: 50px; }
+  }
+
+  /* ----- Settings strip ----- */
+  .settings {
+    flex: 0 0 auto;
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 14px;
+    box-shadow: var(--shadow);
+  }
+  .field { min-width: 0; }
+  .field label {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 600;
+    color: var(--text-mut); margin-bottom: 4px;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .lbl-ico {
+    width: 12px; height: 12px;
+    color: var(--accent);
+    opacity: 0.85; flex-shrink: 0;
+  }
+  .field input, .field select {
+    width: 100%;
+    padding: 7px 9px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--text);
+    font: inherit; font-size: 13px;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .field input:focus, .field select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22);
+  }
+
+  /* Range sliders for bed counts */
+  .slider-field label {
+    display: flex; align-items: center; gap: 5px;
+  }
+  .slider-field label .slider-val { margin-left: auto; }
+  .slider-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; font-weight: 700;
+    color: var(--text);
+    background: var(--bg-2);
+    padding: 1px 8px; border-radius: 999px;
+    border: 1px solid var(--border);
+    text-transform: none; letter-spacing: 0;
+    min-width: 26px; text-align: center;
+  }
+  .field input[type="range"] {
+    width: 100%; height: 28px;
+    background: transparent; border: none; padding: 0;
+    -webkit-appearance: none; appearance: none;
+    cursor: pointer;
+  }
+  .field input[type="range"]::-webkit-slider-runnable-track {
+    height: 5px; border-radius: 999px;
+    background: linear-gradient(90deg, #3b82f6 0%, #1e3a8a 100%);
+    border: 1px solid var(--border);
+  }
+  .field input[type="range"]::-moz-range-track {
+    height: 5px; border-radius: 999px;
+    background: linear-gradient(90deg, #3b82f6 0%, #1e3a8a 100%);
+    border: 1px solid var(--border);
+  }
+  .field input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 16px; height: 16px;
+    margin-top: -6px;
+    border-radius: 50%;
+    background: var(--btn-grad);
+    border: 2px solid #ecf5ff;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.45);
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .field input[type="range"]::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #3b82f6;
+    border: 2px solid #ecf5ff;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.45);
+    cursor: pointer;
+  }
+  .field input[type="range"]:hover::-webkit-slider-thumb {
+    transform: scale(1.12);
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.6);
+  }
+  .field input[type="range"]:focus { outline: none; }
+  .field input[type="range"]:focus::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25), 0 6px 14px rgba(37, 99, 235, 0.6);
+  }
+
+  /* ----- KPI strip ----- */
+  .kpis {
+    flex: 0 0 auto;
+    display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 14px;
+  }
+  .kpi.kpi-action {
+    display: flex; flex-direction: column; justify-content: space-between;
+    min-width: 150px;
+  }
+  .kpi-log-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 8px 12px;
+    background: var(--btn-grad);
+    border: 0; border-radius: 8px;
+    color: white; font: inherit; font-weight: 600; font-size: 12.5px;
+    cursor: pointer;
+    box-shadow:
+      0 6px 16px rgba(37,99,235,0.30),
+      0 1px 0 rgba(255,255,255,0.16) inset,
+      0 -1px 0 rgba(0,0,0,0.30) inset;
+    transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+    margin: 6px 0 4px;
+    width: 100%;
+  }
+  .kpi-log-btn svg { width: 13px; height: 13px; }
+  .kpi-log-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 9px 22px rgba(37,99,235,0.42),
+      0 1px 0 rgba(255,255,255,0.20) inset,
+      0 -1px 0 rgba(0,0,0,0.30) inset;
+  }
+  .kpi-log-btn:disabled {
+    opacity: 0.45; cursor: not-allowed;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 -1px 0 rgba(0,0,0,0.20) inset;
+  }
+  @media (max-width: 720px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .kpi-action { min-width: 0; grid-column: span 2; }
+  }
+  .kpi {
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+  .kpi-label {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--text-mut);
+    margin-bottom: 4px;
+  }
+  .kpi-value {
+    font-size: 24px; font-weight: 700; letter-spacing: -0.02em;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.1;
+  }
+  .kpi-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+  /* ----- Main results: charts + side panel ----- */
+  .main {
+    flex: 1 1 auto; min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 16px;
+  }
+  @media (max-width: 1100px) {
+    .main { grid-template-columns: 1fr; }
+    .settings { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (max-width: 720px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .settings { grid-template-columns: repeat(3, 1fr); padding: 12px 14px; gap: 10px; }
+    .charts { grid-template-columns: 1fr; grid-template-rows: repeat(4, 240px); gap: 12px; }
+    .chart-card { padding: 14px 14px 10px; }
+    .qt-card .qt-grid { grid-template-columns: 1fr; }
+    .appbar { padding: 12px 14px; gap: 10px; flex-wrap: wrap; }
+    .brand-text h1 { font-size: 13px; }
+    .brand-text p { font-size: 10px; }
+  }
+  @media (max-width: 480px) {
+    .kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kpi { padding: 12px 14px; }
+    .kpi-value { font-size: 20px; }
+    .settings { grid-template-columns: repeat(2, 1fr); }
+    .field input, .field select { font-size: 14px; padding: 9px 10px; }
+    .btn-primary { padding: 9px 14px; font-size: 12.5px; }
+    .btn-primary span { display: none; }
+    .pill { display: none; }
+    .appbar { padding: 10px 12px; }
+    .brand-mark { width: 32px; height: 32px; }
+    .brand-mark svg { width: 18px; height: 18px; }
+    .charts { grid-template-rows: repeat(4, 200px); }
+    .qt-card .qt-pool { padding: 8px 9px; }
+    .qt-row { font-size: 10.5px; }
+    .copy-btn { font-size: 9.5px; padding: 4px 7px; }
+    .copy-btn span { display: none; }
+  }
+
+  .charts {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 16px;
+  }
+  .chart-card {
+    background:
+      linear-gradient(180deg, rgba(96,165,250,0.05) 0%, rgba(0,0,0,0) 60%),
+      var(--surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 16px 18px 12px;
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column;
+    min-width: 0; min-height: 0;
+    position: relative;
+    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+  }
+  .chart-card::before {
+    content: ''; position: absolute; left: 16px; right: 16px; top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(96,165,250,0.5) 30%, rgba(30,58,138,0.6) 70%, transparent 100%);
+    border-radius: 1px;
+  }
+  .chart-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(96,165,250,0.20);
+    box-shadow:
+      0 18px 48px rgba(37, 99, 235, 0.18),
+      0 2px 12px rgba(0,0,0,0.36);
+  }
+  [data-theme="light"] .chart-card:hover {
+    box-shadow:
+      0 18px 48px rgba(37, 99, 235, 0.14),
+      0 2px 12px rgba(28,27,46,0.10);
+  }
+  .chart-card h4 {
+    margin: 0 0 10px;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.07em; text-transform: uppercase;
+    color: var(--text-mut);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .chart-card h4::before {
+    content: '';
+    width: 6px; height: 6px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--chart-blue-2), var(--chart-deep));
+    box-shadow: 0 0 10px rgba(96,165,250,0.55);
+    flex-shrink: 0;
+  }
+  .chart-wrap {
+    flex: 1 1 auto; min-height: 0;
+    position: relative;
+  }
+
+  /* Dual donut layout for the resource-utilisation card. Donuts are
+     intentionally compact so the centre percentage and the pool label
+     beneath each chart have visual breathing room. */
+  .dual-donut-wrap {
+    display: flex; gap: 18px;
+    align-items: center; justify-content: space-around;
+    padding: 6px 4px 4px;
+  }
+  .dual-donut {
+    flex: 1 1 0; min-width: 0;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 10px;
+  }
+  .donut-canvas-wrap {
+    position: relative;
+    width: 100%; max-width: 115px; aspect-ratio: 1 / 1;
+  }
+  .donut-canvas-wrap canvas {
+    position: absolute; inset: 0;
+  }
+  .donut-center {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 17px; font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    pointer-events: none;
+  }
+  .donut-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10.5px; font-weight: 600;
+    color: var(--text-mut);
+    letter-spacing: 0.05em; text-transform: uppercase;
+  }
+  .donut-swatch {
+    width: 7px; height: 7px; border-radius: 50%;
+    box-shadow: 0 0 6px currentColor;
+  }
+  .donut-swatch.crit { background: #ef4444; color: rgba(239,68,68,0.5); }
+  .donut-swatch.std  { background: #2dd4bf; color: rgba(45,212,191,0.5); }
+  @media (max-width: 480px) {
+    .donut-canvas-wrap { max-width: 90px; }
+    .donut-center { font-size: 15px; }
+  }
+
+  /* ----- Side panel ----- */
+  .side {
+    min-height: 0;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .side-card {
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column;
+    min-height: 0;
+  }
+  .side-card h4 {
+    margin: 0 0 8px;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--text-mut);
+    flex: 0 0 auto;
+  }
+  .side-card .card-head {
+    display: flex; align-items: center; gap: 8px;
+    margin: 0 0 8px;
+    flex: 0 0 auto;
+  }
+  .side-card .card-head h4 { margin: 0; flex: 1 1 auto; }
+  .copy-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 9px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text-mut);
+    font: inherit; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .copy-btn:hover {
+    color: var(--text);
+    border-color: rgba(96,165,250,0.35);
+    background: rgba(96,165,250,0.10);
+  }
+  .copy-btn:active { transform: scale(0.97); }
+  .copy-btn.copied {
+    color: #34d399;
+    border-color: rgba(52,211,153,0.4);
+    background: rgba(52,211,153,0.12);
+  }
+  .copy-btn svg { width: 12px; height: 12px; }
+  .reps-wrap { flex: 0 0 auto; max-height: 130px; overflow-y: auto; }
+  table.reps {
+    width: 100%; border-collapse: collapse;
+    font-size: 12px;
+  }
+  table.reps th, table.reps td {
+    padding: 5px 6px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  table.reps th {
+    font-size: 9px; font-weight: 600;
+    color: var(--text-mut);
+    letter-spacing: 0.05em; text-transform: uppercase;
+    background: var(--surface-2);
+    position: sticky; top: 0;
+  }
+  table.reps td {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+  }
+  table.reps tr:last-child td { border-bottom: 0; }
+
+  .log {
+    flex: 1 1 auto; min-height: 0;
+    overflow-y: auto;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; line-height: 1.55;
+    color: var(--text-mut);
+  }
+  .log .l-arr { color: var(--accent); }     /* ARRIVAL — blue */
+  .log .l-bed { color: var(--teal); }       /* bed assigned — teal */
+  .log .l-end { color: var(--text-dim); }   /* treatment END */
+  .log .l-q   { color: var(--warn); }       /* queued — amber */
+
+  /* ----- Empty / loading state inside main ----- */
+  .empty {
+    grid-column: 1 / -1; grid-row: 1 / -1;
+    align-self: stretch; justify-self: stretch;
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-mut);
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border-2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .9s linear infinite;
+    margin-bottom: 14px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .progress {
+    height: 5px; border-radius: 999px;
+    background: var(--bg-2);
+    overflow: hidden; max-width: 280px; width: 100%; margin: 14px auto 0;
+  }
+  .progress > span {
+    display: block; height: 100%;
+    background: var(--grad);
+    width: 0%;
+    transition: width .4s ease;
+  }
+  .empty-title { font-weight: 600; color: var(--text); font-size: 14px; margin-bottom: 4px; }
+  .empty-sub { font-size: 12px; }
+
+  ::-webkit-scrollbar { width: 7px; height: 7px; }
+  ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+  /* ----- Queueing-theory panel ----- */
+  .qt-card .qt-head {
+    display: flex; align-items: center; gap: 8px;
+    margin: 0 0 10px;
+  }
+  .qt-card .qt-head h4 { margin: 0; flex: 1 1 auto; }
+  .qt-card .qt-badge {
+    font-size: 9.5px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 3px 7px; border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-mut);
+    flex-shrink: 0;
+  }
+  .qt-card .qt-badge.pass { color: #34d399; border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.10); }
+  .qt-card .qt-badge.warn { color: #f59e0b; border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.10); }
+  .qt-card .qt-badge.fail { color: #ef4444; border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.10); }
+  .qt-card .qt-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .qt-pool {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 9px 10px;
+  }
+  .qt-pool-label {
+    font-size: 9.5px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text-mut);
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 6px;
+  }
+  .qt-pool-label .swatch {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .qt-pool.critical .swatch { background: #ef4444; }
+  .qt-pool.standard .swatch { background: #2dd4bf; }
+  .qt-row {
+    display: grid;
+    grid-template-columns: 26px 1fr 1fr 14px;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; line-height: 1.55;
+    align-items: center;
+  }
+  .qt-row .qt-key {
+    color: var(--text-mut); font-weight: 600;
+  }
+  .qt-row .qt-thy { color: var(--text); text-align: right; }
+  .qt-row .qt-sim { color: var(--text-mut); text-align: right; font-style: italic; }
+  .qt-row .qt-mark {
+    text-align: center; font-size: 11px; line-height: 1;
+  }
+  .qt-row .qt-mark.ok   { color: #34d399; }
+  .qt-row .qt-mark.warn { color: #f59e0b; }
+  .qt-row .qt-mark.fail { color: #ef4444; }
+  .qt-row .qt-mark.idle { color: var(--text-dim); }
+  .qt-pool.unstable .qt-thy { color: #f59e0b; }
+  .qt-pool-flag {
+    margin-left: auto;
+    font-size: 8.5px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 999px;
+    color: var(--text-dim);
+    border: 1px solid transparent;
+  }
+  .qt-pool.unstable .qt-pool-flag {
+    color: #f59e0b;
+    border-color: rgba(245,158,11,0.4);
+    background: rgba(245,158,11,0.10);
+  }
+  .qt-pool.unstable .qt-pool-flag::before { content: 'ρ ≥ 1 · unstable'; }
+  .qt-info {
+    display: inline-block; font-size: 11px;
+    color: var(--text-dim); cursor: help; margin-left: 2px;
+    border-bottom: 1px dotted var(--text-dim);
+  }
+  .qt-strategy-note {
+    margin-top: 8px;
+    padding: 7px 10px;
+    background: rgba(245,158,11,0.10);
+    border: 1px solid rgba(245,158,11,0.30);
+    border-radius: var(--r-sm);
+    color: #fbbf24;
+    font-size: 10.5px; line-height: 1.45;
+  }
+  .qt-strategy-note b { color: #fcd34d; font-weight: 700; }
+  .qt-foot {
+    margin-top: 8px;
+    font-size: 10px; color: var(--text-dim);
+    line-height: 1.55;
+  }
+  .qt-foot .qt-leg b {
+    color: var(--text-mut); font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .qt-foot .qt-mk-ok   { color: #34d399; font-weight: 700; }
+  .qt-foot .qt-mk-warn { color: #f59e0b; font-weight: 700; }
+  .qt-foot .qt-mk-fail { color: #ef4444; font-weight: 700; }
+  .qt-foot .qt-mk-idle { color: var(--text-dim); font-weight: 700; }
+
+  /* Mobile: QT pools must stack so each is readable at narrow widths.
+     Placed after the base .qt-grid rule to win the cascade. */
+  @media (max-width: 720px) {
+    .qt-card .qt-grid { grid-template-columns: 1fr; }
+  }
+
+  /* hide nodes */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- App bar -->
+  <header class="appbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 13h4l2-5 3 9 2-6 1.5 3H21" opacity="0.95"/>
+          <circle cx="9" cy="8" r="1.1" fill="white" stroke="none"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>ER Simulation · SimPy</h1>
+        <p>WSC 2025 — GenAI &amp; Simulation Tutorial · Figure 8 prompt</p>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <span class="pill" id="status"><span class="dot loading"></span><span id="status-text">Loading…</span></span>
+    <span class="sim-progress" id="sim-progress" aria-hidden="true"></span>
+    <button class="btn-primary" id="run-btn" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M13 2L3 14h7l-1 8 11-13h-7l1-7z" fill="currentColor" stroke="none"/>
+      </svg>
+      <span id="run-label">Loading runtime…</span>
+    </button>
+    <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- Settings strip -->
+  <section class="settings">
+    <div class="field"><label><svg class="lbl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Arrival mean (min)</label><input type="number" id="arrival_mean" value="6" min="0.5" step="0.5"/></div>
+    <div class="field"><label><svg class="lbl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12M6 22h12M7 2v5a5 5 0 0 0 10 0V2M7 22v-5a5 5 0 0 1 10 0v5"/></svg>Duration (min)</label><input type="number" id="duration" value="10000" min="50" step="50"/></div>
+    <div class="field slider-field">
+      <label><svg class="lbl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Critical beds <span class="slider-val" id="critical_beds_val">3</span></label>
+      <input type="range" id="critical_beds" value="3" min="1" max="8" step="1"/>
+    </div>
+    <div class="field slider-field">
+      <label><svg class="lbl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18V8a2 2 0 0 1 2-2h4a3 3 0 0 1 3 3v3h7a2 2 0 0 1 2 2v4M3 14h18M3 18h2M19 18h2"/></svg>Standard beds <span class="slider-val" id="standard_beds_val">3</span></label>
+      <input type="range" id="standard_beds" value="3" min="1" max="12" step="1"/>
+    </div>
+    <div class="field"><label><svg class="lbl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h12M3 18h6"/></svg>Selection strategy</label>
+      <select id="selection_strategy">
+        <option value="FIFO">FIFO</option>
+        <option value="ShortestExpectedTreatment">ShortestExpectedTreatment</option>
+      </select>
+    </div>
+    <div class="field"><label><svg class="lbl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Replications</label><input type="number" id="n_replications" value="1" min="1" max="20"/></div>
+    <div class="field"><label><svg class="lbl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.4" fill="currentColor"/><circle cx="16" cy="16" r="1.4" fill="currentColor"/><circle cx="16" cy="8" r="1.4" fill="currentColor"/><circle cx="8" cy="16" r="1.4" fill="currentColor"/></svg>Seed</label><input type="number" id="seed" value="42" min="0"/></div>
+  </section>
+
+  <!-- KPI strip -->
+  <section class="kpis" id="kpis">
+    <div class="kpi"><div class="kpi-label">Patients served</div><div class="kpi-value" id="k-served">—</div><div class="kpi-sub" id="k-served-sub">run a simulation</div></div>
+    <div class="kpi"><div class="kpi-label">Mean wait</div><div class="kpi-value" id="k-wait">—</div><div class="kpi-sub">arrival → bed</div></div>
+    <div class="kpi"><div class="kpi-label">Mean time in system</div><div class="kpi-value" id="k-tis">—</div><div class="kpi-sub">arrival → discharge</div></div>
+    <div class="kpi"><div class="kpi-label">Bed utilization</div><div class="kpi-value" id="k-util">—</div><div class="kpi-sub">critical / standard</div></div>
+    <div class="kpi kpi-action">
+      <div class="kpi-label">Event log</div>
+      <button class="kpi-log-btn" id="log-open-btn" disabled type="button" title="Open the full event log in a new tab (available after a simulation run)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 3h7v7"/>
+          <path d="M21 3l-9 9"/>
+          <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/>
+        </svg>
+        <span id="log-btn-label">View log</span>
+      </button>
+      <div class="kpi-sub" id="log-btn-sub">runs after a simulation</div>
+    </div>
+  </section>
+
+  <!-- Main: charts + side -->
+  <section class="main">
+
+    <div class="charts" id="charts-region">
+      <!-- Empty/loading replaces this region until first run -->
+      <div class="empty" id="empty-state">
+        <div class="spinner" id="boot-spinner"></div>
+        <div class="empty-title" id="empty-title">Initialising Pyodide…</div>
+        <div class="empty-sub" id="empty-sub">First load downloads the Python runtime (~10 MB) and SimPy.</div>
+        <div class="progress"><span id="boot-progress"></span></div>
+      </div>
+
+      <div class="chart-card hidden"><h4>Wait time distribution</h4><div class="chart-wrap"><canvas id="chart-wait"></canvas></div></div>
+      <div class="chart-card hidden"><h4>Time in system</h4><div class="chart-wrap"><canvas id="chart-tis"></canvas></div></div>
+      <div class="chart-card hidden"><h4>Resource utilization</h4>
+        <div class="chart-wrap dual-donut-wrap">
+          <div class="dual-donut">
+            <div class="donut-canvas-wrap">
+              <canvas id="chart-util-c"></canvas>
+              <div class="donut-center" id="chart-util-c-label">—</div>
+            </div>
+            <div class="donut-label"><span class="donut-swatch crit"></span>Critical</div>
+          </div>
+          <div class="dual-donut">
+            <div class="donut-canvas-wrap">
+              <canvas id="chart-util-s"></canvas>
+              <div class="donut-center" id="chart-util-s-label">—</div>
+            </div>
+            <div class="donut-label"><span class="donut-swatch std"></span>Standard</div>
+          </div>
+        </div>
+      </div>
+      <div class="chart-card hidden"><h4>Queue length over time</h4><div class="chart-wrap"><canvas id="chart-queue"></canvas></div></div>
+    </div>
+
+    <aside class="side">
+      <div class="side-card qt-card" id="qt-card" style="flex: 0 0 auto">
+        <div class="qt-head">
+          <h4>Queueing theory · M/G/c <span class="qt-info" title="Closed-form queueing theory predictions for this configuration. Erlang-C with Allen-Cunneen M/G/c correction for triangular service times. After a run, italic numbers show simulated values for direct comparison.">ⓘ</span></h4>
+          <span class="qt-badge" id="qt-badge">awaiting run</span>
+        </div>
+        <div class="qt-grid">
+          <div class="qt-pool critical" id="qt-pool-critical">
+            <div class="qt-pool-label">
+              <span class="swatch"></span>Critical care · <span id="qt-c-c">2 beds</span>
+              <span class="qt-pool-flag" id="qt-c-flag"></span>
+            </div>
+            <div class="qt-row" title="Utilisation per server: fraction of time each bed is busy. Stable systems have ρ &lt; 1.">
+              <span class="qt-key">ρ</span><span class="qt-thy" id="qt-c-rho-thy">—</span><span class="qt-sim" id="qt-c-rho-sim">—</span><span class="qt-mark idle" id="qt-c-rho-mk">·</span>
+            </div>
+            <div class="qt-row" title="Lq: average number of patients waiting in this pool's queue.">
+              <span class="qt-key">Lq</span><span class="qt-thy" id="qt-c-lq-thy">—</span><span class="qt-sim" id="qt-c-lq-sim">—</span><span class="qt-mark idle" id="qt-c-lq-mk">·</span>
+            </div>
+            <div class="qt-row" title="Wq: average wait time before a bed is assigned (minutes).">
+              <span class="qt-key">Wq</span><span class="qt-thy" id="qt-c-wq-thy">—</span><span class="qt-sim" id="qt-c-wq-sim">—</span><span class="qt-mark idle" id="qt-c-wq-mk">·</span>
+            </div>
+          </div>
+          <div class="qt-pool standard" id="qt-pool-standard">
+            <div class="qt-pool-label">
+              <span class="swatch"></span>Standard · <span id="qt-c-s">4 beds</span>
+              <span class="qt-pool-flag" id="qt-s-flag"></span>
+            </div>
+            <div class="qt-row" title="Utilisation per server: fraction of time each bed is busy. Stable systems have ρ &lt; 1.">
+              <span class="qt-key">ρ</span><span class="qt-thy" id="qt-s-rho-thy">—</span><span class="qt-sim" id="qt-s-rho-sim">—</span><span class="qt-mark idle" id="qt-s-rho-mk">·</span>
+            </div>
+            <div class="qt-row" title="Lq: average number of patients waiting in this pool's queue.">
+              <span class="qt-key">Lq</span><span class="qt-thy" id="qt-s-lq-thy">—</span><span class="qt-sim" id="qt-s-lq-sim">—</span><span class="qt-mark idle" id="qt-s-lq-mk">·</span>
+            </div>
+            <div class="qt-row" title="Wq: average wait time before a bed is assigned (minutes).">
+              <span class="qt-key">Wq</span><span class="qt-thy" id="qt-s-wq-thy">—</span><span class="qt-sim" id="qt-s-wq-sim">—</span><span class="qt-mark idle" id="qt-s-wq-mk">·</span>
+            </div>
+          </div>
+        </div>
+        <div class="qt-strategy-note" id="qt-strategy-note" hidden>
+          ⚠ Theory shown is the closed-form M/G/c result for <b>FIFO</b>. Utilisation (ρ) is strategy-invariant for any work-conserving discipline, so it stays valid. In this model, treatment time is sampled independently of severity within each pool, so <b>ShortestExpectedTreatment</b> reorders the queue by severity proxy without changing aggregate Wq or Lq — empirically the means match FIFO closely. A strategy effect only emerges if you extend the model to make service time depend on severity.
+        </div>
+        <div class="qt-foot" id="qt-foot">
+          <span class="qt-leg"><b>ρ</b> utilisation</span> ·
+          <span class="qt-leg"><b>Lq</b> avg queue</span> ·
+          <span class="qt-leg"><b>Wq</b> avg wait</span><br>
+          theory · <span class="qt-sim">simulated</span> · <span class="qt-mk-ok">✓</span> within band · <span class="qt-mk-warn">~</span> close · <span class="qt-mk-fail">✗</span> off · <span class="qt-mk-idle">—</span> n/a (∞)
+        </div>
+      </div>
+      <div class="side-card" style="flex: 0 0 auto">
+        <h4>Per-replication summary</h4>
+        <div class="reps-wrap"><table class="reps" id="reps-table"><thead><tr><th>Rep</th><th>Served</th><th>Mean wait</th><th>Max wait</th><th>Mean TIS</th></tr></thead><tbody><tr><td colspan="5" style="color:var(--text-dim); text-align:center; padding: 14px 0">no runs yet</td></tr></tbody></table></div>
+      </div>
+    </aside>
+
+  </section>
+
+</div>
+
+<script type="text/python" id="er-py">
+# ============================================================================
+# Embedded copy of er_simulation.py (kept in sync with the .py file).
+# ============================================================================
+"""
+Emergency Room (ER) Discrete-Event Simulation — SimPy
+
+Generated from the structured prompt in Figure 8 of:
+    Dehghanimohammadabadi, Belsare, and Sadeghi (2025).
+    "A Tutorial on Generative AI and Simulation Modeling Integration."
+    Proceedings of the 2025 Winter Simulation Conference.
+
+Scenario
+--------
+Patients arrive following an exponential inter-arrival distribution (mean = 6 min).
+Each patient is triaged with a severity score in [1, 10]:
+    severity >= 7 -> CriticalCareBeds, treatment ~ triangular(20, 30, 45)
+    severity <  7 -> StandardBeds,     treatment ~ triangular(10, 15, 25)
+
+Selection strategies
+--------------------
+    "FIFO"                     : earliest arrival served first
+    "ShortestExpectedTreatment": severity-based proxy; lower severity (within
+                                 the same bed pool) implies shorter expected
+                                 treatment, served first
+
+Run
+---
+    python er_simulation.py
+"""
+
+from __future__ import annotations
+
+import random
+import statistics
+from dataclasses import dataclass, field
+from typing import Callable
+
+import simpy
+
+
+# ---------------------------------------------------------------------------
+# Defaults
+# ---------------------------------------------------------------------------
+
+DEFAULT_SETTINGS: dict = {
+    "arrival_mean":          6.0,        # minutes between arrivals (exp mean)
+    "critical_beds":         2,
+    "standard_beds":         4,
+    "selection_strategy":    "FIFO",     # or "ShortestExpectedTreatment"
+    "n_replications":        1,
+    "duration":              500.0,      # simulated minutes
+    "severity_min":          1,
+    "severity_max":          10,
+    "critical_threshold":    7,          # severity >= threshold -> critical
+    "critical_tri":          (20, 30, 45),
+    "standard_tri":          (10, 15, 25),
+    "seed":                  42,
+    "verbose":               True,
+}
+
+
+# ---------------------------------------------------------------------------
+# Data classes
+# ---------------------------------------------------------------------------
+
+@dataclass
+class Patient:
+    pid: int
+    arrival_time: float
+    severity: int
+    bed_type: str                     # "critical" or "standard"
+    expected_treatment: float         # severity-based proxy used for sorting
+    queue_entry_time: float | None = None
+    bed_assigned_time: float | None = None
+    treatment_start: float | None = None
+    treatment_end: float | None = None
+    treatment_duration: float | None = None
+
+    @property
+    def wait_time(self) -> float:
+        return (self.bed_assigned_time or 0.0) - self.arrival_time
+
+    @property
+    def time_in_system(self) -> float:
+        return (self.treatment_end or 0.0) - self.arrival_time
+
+
+@dataclass
+class ResourceStats:
+    name: str
+    capacity: int
+    served: int = 0
+    busy_time: float = 0.0
+    queue_samples: list[int] = field(default_factory=list)
+
+
+@dataclass
+class RunResult:
+    patients: list[Patient]
+    critical_stats: ResourceStats
+    standard_stats: ResourceStats
+    duration: float
+    log: list[str]
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _log(env: simpy.Environment, log: list[str], pid: int | None, msg: str,
+         verbose: bool) -> None:
+    line = f"[t={env.now:7.2f}]  pid={pid if pid is not None else '-':>3}  {msg}"
+    log.append(line)
+    if verbose:
+        print(line)
+
+
+def select_next_patient(waiting_list: list[Patient], strategy: str) -> Patient:
+    """Pick the next patient from a waiting list according to the strategy.
+
+    The waiting list is mutated: the chosen patient is removed and returned.
+    """
+    if not waiting_list:
+        raise ValueError("waiting_list is empty")
+
+    if strategy == "FIFO":
+        return waiting_list.pop(0)
+
+    if strategy == "ShortestExpectedTreatment":
+        idx = min(
+            range(len(waiting_list)),
+            key=lambda i: waiting_list[i].expected_treatment,
+        )
+        return waiting_list.pop(idx)
+
+    raise ValueError(f"Unknown selection strategy: {strategy!r}")
+
+
+def _expected_treatment(severity: int, settings: dict) -> float:
+    """Severity-based proxy for expected treatment time.
+
+    Within each bed pool, lower severity implies shorter expected treatment.
+    The absolute value is only used for sorting under
+    'ShortestExpectedTreatment'.
+    """
+    lo, mode, hi = (
+        settings["critical_tri"]
+        if severity >= settings["critical_threshold"]
+        else settings["standard_tri"]
+    )
+    span = hi - lo
+    s_min = settings["severity_min"]
+    s_max = settings["severity_max"]
+    return lo + span * ((severity - s_min) / max(1, s_max - s_min))
+
+
+# ---------------------------------------------------------------------------
+# Process functions
+# ---------------------------------------------------------------------------
+
+def treat_patient(env: simpy.Environment, patient: Patient, settings: dict,
+                  log: list[str]):
+    """Sample the treatment duration and time-out for it."""
+    rng = settings["_rng"]
+    if patient.bed_type == "critical":
+        lo, mode, hi = settings["critical_tri"]
+    else:
+        lo, mode, hi = settings["standard_tri"]
+    duration = rng.triangular(lo, mode, hi)
+    patient.treatment_duration = duration
+    patient.treatment_start = env.now
+    _log(env, log, patient.pid,
+         f"treatment START ({patient.bed_type}, dur={duration:.2f})",
+         settings["verbose"])
+    yield env.timeout(duration)
+    patient.treatment_end = env.now
+    _log(env, log, patient.pid, "treatment END", settings["verbose"])
+
+
+def patient_process(env: simpy.Environment, patient: Patient,
+                  waiting_lists: dict[str, list[Patient]],
+                  new_arrival_events: dict[str, simpy.Event],
+                  settings: dict, log: list[str]) -> None:
+    """Patient arrives, is triaged, and is placed on the waiting list.
+    Treatment is driven by the per-bed worker processes."""
+    _log(env, log, patient.pid,
+         f"ARRIVAL  severity={patient.severity}  -> {patient.bed_type}",
+         settings["verbose"])
+
+    patient.queue_entry_time = env.now
+    waiting_lists[patient.bed_type].append(patient)
+    _log(env, log, patient.pid, f"queued ({patient.bed_type})",
+         settings["verbose"])
+
+    # Wake every worker currently parked on the arrival event for this
+    # bed type, then install a fresh event so subsequent arrivals can
+    # wake workers that re-park after losing the race for this patient.
+    ev = new_arrival_events[patient.bed_type]
+    new_arrival_events[patient.bed_type] = env.event()
+    if not ev.triggered:
+        ev.succeed()
+
+
+def bed_worker(env: simpy.Environment, bed_id: int, bed_type: str,
+               stats: ResourceStats,
+               waiting_lists: dict[str, list[Patient]],
+               new_arrival_events: dict[str, simpy.Event],
+               served_patients: list[Patient],
+               settings: dict, log: list[str]):
+    """One worker per bed slot. The worker IS a bed: it pulls one patient
+    at a time off the shared waiting list using the configured selection
+    strategy, runs that patient's treatment, then loops.
+
+    Spawning ``c`` workers per pool gives the pool true ``c``-server
+    parallelism. With this design the realised utilisation and queue
+    length track classical multi-server queueing theory (Erlang-C for
+    M/M/c, Allen-Cunneen for M/G/c). A single per-pool controller would
+    serialise treatments and force effective capacity = 1 regardless of
+    the configured bed count.
+    """
+    strategy = settings["selection_strategy"]
+
+    while True:
+        # Wait for a patient of this type. Multiple workers may share the
+        # same arrival event; the first one to run grabs the patient via
+        # ``select_next_patient``, the rest find the list empty and
+        # re-park on the freshly installed event.
+        while not waiting_lists[bed_type]:
+            yield new_arrival_events[bed_type]
+
+        if not waiting_lists[bed_type]:
+            continue
+
+        patient = select_next_patient(waiting_lists[bed_type], strategy)
+        patient.bed_assigned_time = env.now
+        stats.served += 1
+        _log(env, log, patient.pid,
+             f"bed assigned ({bed_type}/bed{bed_id})  wait={patient.wait_time:.2f}",
+             settings["verbose"])
+
+        # Append at ASSIGNMENT time, not at completion. This way wait_time
+        # statistics include patients whose treatment is still in progress
+        # when the simulation horizon is reached, which would otherwise be
+        # silently censored under heavy load and bias the realised Wq low.
+        served_patients.append(patient)
+
+        t0 = env.now
+        yield env.process(treat_patient(env, patient, settings, log))
+        stats.busy_time += env.now - t0
+
+
+def arrivals(env: simpy.Environment, waiting_lists, new_arrival_events,
+             settings: dict, log: list[str]):
+    """Poisson arrivals: exponential inter-arrival times."""
+    rng = settings["_rng"]
+    pid = 0
+    while True:
+        yield env.timeout(rng.expovariate(1.0 / settings["arrival_mean"]))
+        pid += 1
+        severity = rng.randint(settings["severity_min"], settings["severity_max"])
+        bed_type = (
+            "critical"
+            if severity >= settings["critical_threshold"]
+            else "standard"
+        )
+        patient = Patient(
+            pid=pid,
+            arrival_time=env.now,
+            severity=severity,
+            bed_type=bed_type,
+            expected_treatment=_expected_treatment(severity, settings),
+        )
+        patient_process(env, patient, waiting_lists,
+                      new_arrival_events, settings, log)
+
+
+def queue_sampler(env: simpy.Environment,
+                  waiting_lists: dict[str, list[Patient]],
+                  critical_stats: ResourceStats,
+                  standard_stats: ResourceStats,
+                  step: float = 1.0):
+    while True:
+        critical_stats.queue_samples.append(len(waiting_lists["critical"]))
+        standard_stats.queue_samples.append(len(waiting_lists["standard"]))
+        yield env.timeout(step)
+
+
+# ---------------------------------------------------------------------------
+# Run controllers
+# ---------------------------------------------------------------------------
+
+def run_single_simulation(settings: dict | None = None) -> RunResult:
+    cfg = {**DEFAULT_SETTINGS, **(settings or {})}
+    cfg["_rng"] = random.Random(cfg["seed"])
+
+    env = simpy.Environment()
+
+    waiting_lists: dict[str, list[Patient]] = {"critical": [], "standard": []}
+    new_arrival_events = {
+        "critical": env.event(),
+        "standard": env.event(),
+    }
+
+    critical_stats = ResourceStats("CriticalCareBeds", cfg["critical_beds"])
+    standard_stats = ResourceStats("StandardBeds", cfg["standard_beds"])
+    served: list[Patient] = []
+    log: list[str] = []
+
+    env.process(arrivals(env, waiting_lists, new_arrival_events, cfg, log))
+
+    # Spawn one bed_worker per bed slot. With ``c`` workers per pool the
+    # pool delivers true ``c``-server parallelism, so realised utilisation
+    # and queue length match multi-server queueing theory.
+    for bed_id in range(cfg["critical_beds"]):
+        env.process(bed_worker(env, bed_id, "critical", critical_stats,
+                               waiting_lists, new_arrival_events,
+                               served, cfg, log))
+    for bed_id in range(cfg["standard_beds"]):
+        env.process(bed_worker(env, bed_id, "standard", standard_stats,
+                               waiting_lists, new_arrival_events,
+                               served, cfg, log))
+
+    env.process(queue_sampler(env, waiting_lists, critical_stats, standard_stats))
+
+    env.run(until=cfg["duration"])
+
+    # Credit busy_time for any worker still mid-treatment at the run horizon.
+    # Without this, occupancy is only booked when ``treat_patient`` returns,
+    # so partial service intervals at termination are dropped and realised
+    # rho is biased low (most visible in short or heavily loaded runs).
+    for pt in served:
+        if pt.treatment_start is not None and pt.treatment_end is None:
+            partial = max(0.0, cfg["duration"] - pt.treatment_start)
+            if pt.bed_type == "critical":
+                critical_stats.busy_time += partial
+            else:
+                standard_stats.busy_time += partial
+
+    return RunResult(
+        patients=served,
+        critical_stats=critical_stats,
+        standard_stats=standard_stats,
+        duration=cfg["duration"],
+        log=log,
+    )
+
+
+def _summary_block(label: str, values: list[float]) -> str:
+    if not values:
+        return f"  {label}: (no observations)"
+    return (
+        f"  {label}: n={len(values):3d}  "
+        f"mean={statistics.mean(values):7.2f}  "
+        f"min={min(values):6.2f}  "
+        f"max={max(values):6.2f}  "
+        f"stdev={(statistics.pstdev(values)):6.2f}"
+    )
+
+
+def summarize(result: RunResult) -> str:
+    p = result.patients
+    completed = [pt for pt in p if pt.treatment_end is not None]
+    lines = []
+    lines.append("=" * 72)
+    lines.append(f"Simulation summary  (duration = {result.duration:.0f} min, "
+                 f"assigned = {len(p)}, completed = {len(completed)})")
+    lines.append("=" * 72)
+    lines.append(_summary_block("time in system  ",
+                                [pt.time_in_system for pt in completed]))
+    lines.append(_summary_block("wait time       ",
+                                [pt.wait_time for pt in p]))
+    lines.append(_summary_block("treatment time  ",
+                                [pt.treatment_duration for pt in completed
+                                 if pt.treatment_duration is not None]))
+    for stats in (result.critical_stats, result.standard_stats):
+        util = (stats.busy_time / (result.duration * stats.capacity)
+                if stats.capacity else 0.0)
+        avg_q = (statistics.mean(stats.queue_samples)
+                 if stats.queue_samples else 0.0)
+        lines.append(
+            f"  {stats.name:18s}  capacity={stats.capacity}  "
+            f"served={stats.served}  utilization={util*100:5.1f}%  "
+            f"avg_queue_len={avg_q:.2f}"
+        )
+    return "\n".join(lines)
+
+
+def run_experiment(settings: dict | None = None) -> list[RunResult]:
+    cfg = {**DEFAULT_SETTINGS, **(settings or {})}
+    base_seed = cfg["seed"]
+    results: list[RunResult] = []
+    for r in range(cfg["n_replications"]):
+        rep_cfg = {**cfg, "seed": base_seed + r}
+        if cfg["n_replications"] > 1:
+            rep_cfg["verbose"] = False
+        result = run_single_simulation(rep_cfg)
+        results.append(result)
+        print(summarize(result))
+        print()
+    return results
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+</script>
+
+<script>
+/* ---------- Theme toggle ---------- */
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const cur = document.documentElement.dataset.theme;
+  document.documentElement.dataset.theme = cur === 'dark' ? 'light' : 'dark';
+  if (window.allCharts) window.allCharts.forEach(c => c && c.update());
+});
+
+/* ---------- Log "open in new tab" button ---------- */
+window.lastRunLogs = null;  // populated after each run, used by openLogInTab
+
+function escapeForHtml(s) {
+  return String(s).replace(/[&<>'"]/g, ch => (
+    {'&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;'}[ch]
+  ));
+}
+
+function colourise(line) {
+  const safe = escapeForHtml(line);
+  let cls = '';
+  if      (line.includes('ARRIVAL'))       cls = 'l-arr';
+  else if (line.includes('bed assigned'))  cls = 'l-bed';
+  else if (line.includes('treatment END')) cls = 'l-end';
+  else if (line.includes('queued'))        cls = 'l-q';
+  return cls ? `<div class="${cls}">${safe}</div>` : `<div>${safe}</div>`;
+}
+
+function openLogInTab() {
+  const reps = window.lastRunLogs;
+  if (!reps || reps.length === 0) {
+    alert('No log yet. Run the simulation first.');
+    return;
+  }
+  // Build a self-contained HTML page with all replications, color-coded.
+  const sections = reps.map((repLog, i) => {
+    const linesHtml = repLog.map(colourise).join('');
+    return `
+      <section>
+        <h2>Replication ${i + 1} <span class="count">(${repLog.length} events)</span></h2>
+        <div class="log-block">${linesHtml}</div>
+      </section>`;
+  }).join('');
+
+  const totalEvents = reps.reduce((a, r) => a + r.length, 0);
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ER Simulation · Full Event Log</title>
+<style>
+  :root {
+    --bg: #060912; --bg-2: #0d1428; --surface: rgba(20,30,56,0.78);
+    --border: rgba(255,255,255,0.08); --text: #e8eefb; --text-mut: #94a4c4;
+    --accent: #60a5fa; --teal: #2dd4bf; --warn: #f59e0b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 28px 36px;
+    background: radial-gradient(900px 480px at 82% -8%, rgba(96,165,250,0.18), transparent 60%),
+                radial-gradient(700px 400px at -10% 25%, rgba(37,99,235,0.14), transparent 60%),
+                var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+  }
+  header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 16px; margin-bottom: 18px;
+  }
+  h1 { font-size: 22px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  .meta { color: var(--text-mut); font-size: 13px; }
+  section {
+    background: var(--surface); backdrop-filter: blur(20px);
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 16px;
+    box-shadow: 0 14px 40px rgba(37,99,235,0.10);
+  }
+  h2 {
+    margin: 0 0 10px; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--text-mut);
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  h2 .count {
+    font-size: 11px; font-weight: 500; color: var(--text-mut);
+    text-transform: none; letter-spacing: 0;
+  }
+  .log-block {
+    background: var(--bg-2); border: 1px solid var(--border);
+    border-radius: 9px; padding: 12px 14px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px; line-height: 1.6;
+    color: var(--text-mut);
+    max-height: 70vh; overflow-y: auto;
+    white-space: pre;
+  }
+  .log-block .l-arr { color: var(--accent); }
+  .log-block .l-bed { color: var(--teal); }
+  .log-block .l-end { color: #6b7280; }
+  .log-block .l-q   { color: var(--warn); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.24); }
+</style>
+</head>
+<body>
+  <header>
+    <h1>ER Simulation · Full Event Log</h1>
+    <div class="meta">${reps.length} replication${reps.length>1?'s':''} · ${totalEvents.toLocaleString()} events</div>
+  </header>
+  ${sections}
+</body>
+</html>`;
+  const blob = new Blob([html], { type: 'text/html' });
+  const url  = URL.createObjectURL(blob);
+  window.open(url, '_blank', 'noopener,noreferrer');
+  // The blob URL stays valid for the lifetime of the tab; revoke after a
+  // delay so the new tab has time to load it.
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+document.getElementById('log-open-btn').addEventListener('click', openLogInTab);
+
+/* ---------- Status ---------- */
+const statusEl     = document.getElementById('status');
+const statusText   = document.getElementById('status-text');
+const runBtn       = document.getElementById('run-btn');
+const runLabel     = document.getElementById('run-label');
+const emptyState   = document.getElementById('empty-state');
+const emptyTitle   = document.getElementById('empty-title');
+const emptySub     = document.getElementById('empty-sub');
+const bootProgress = document.getElementById('boot-progress');
+const bootSpinner  = document.getElementById('boot-spinner');
+const chartsRegion = document.getElementById('charts-region');
+const chartCards   = chartsRegion.querySelectorAll('.chart-card');
+
+function setStatus(text, mode = 'loading') {
+  statusText.textContent = text;
+  statusEl.querySelector('.dot').className = 'dot' + (mode === 'ready' ? '' : (' ' + mode));
+}
+function setBootProgress(pct, title, sub) {
+  bootProgress.style.width = pct + '%';
+  if (title) emptyTitle.textContent = title;
+  if (sub)   emptySub.textContent   = sub;
+}
+
+/* ---------- Pyodide bootstrap ---------- */
+let pyodide = null;
+let pyReady = false;
+
+async function bootPyodide() {
+  setBootProgress(15, 'Loading Pyodide…', 'Fetching Python runtime from the CDN.');
+  pyodide = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/" });
+  setBootProgress(55, 'Installing SimPy…', 'pip install simpy in the browser.');
+  await pyodide.loadPackage("micropip");
+  await pyodide.runPythonAsync(`
+import micropip
+await micropip.install("simpy")
+`);
+  setBootProgress(85, 'Loading simulation module…', 'er_simulation.py');
+  pyodide.runPython(document.getElementById('er-py').textContent);
+  pyReady = true;
+  setBootProgress(100, 'Ready', 'Press “Run simulation” to execute the SimPy model in your browser.');
+  setStatus('Pyodide ready', 'ready');
+  runBtn.disabled = false;
+  runLabel.textContent = 'Run simulation';
+  bootSpinner.style.display = 'none';
+}
+bootPyodide().catch(err => {
+  console.error(err);
+  setStatus('Failed to load runtime', 'error');
+  emptyTitle.textContent = 'Pyodide failed to load';
+  emptySub.textContent   = String(err);
+});
+
+/* ---------- Run ---------- */
+runBtn.addEventListener('click', runSimulation);
+
+function readSettings() {
+  return {
+    arrival_mean:       parseFloat(document.getElementById('arrival_mean').value),
+    duration:           parseFloat(document.getElementById('duration').value),
+    critical_beds:      parseInt(document.getElementById('critical_beds').value, 10),
+    standard_beds:      parseInt(document.getElementById('standard_beds').value, 10),
+    selection_strategy: document.getElementById('selection_strategy').value,
+    n_replications:     parseInt(document.getElementById('n_replications').value, 10),
+    seed:               parseInt(document.getElementById('seed').value, 10),
+  };
+}
+
+async function runSimulation() {
+  if (!pyReady) return;
+  runBtn.disabled = true;
+  runLabel.textContent = 'Running…';
+  setStatus('Running simulation…', 'loading');
+  const progress = document.getElementById('sim-progress');
+  if (progress) progress.classList.add('on');
+
+  const s = readSettings();
+  pyodide.globals.set('JS_SETTINGS', pyodide.toPy(s));
+
+  const code = `
+import json, statistics
+result_list = run_experiment(JS_SETTINGS.to_py() if hasattr(JS_SETTINGS, 'to_py') else dict(JS_SETTINGS))
+
+def serialize(rep_index, r):
+    util_c = (r.critical_stats.busy_time / (r.duration * r.critical_stats.capacity)) if r.critical_stats.capacity else 0.0
+    util_s = (r.standard_stats.busy_time / (r.duration * r.standard_stats.capacity)) if r.standard_stats.capacity else 0.0
+    p = r.patients
+    # NOTE: r.patients now contains every patient who has been ASSIGNED a bed,
+    # including those still being treated at the run horizon. wait_time is
+    # well-defined for all of them. time_in_system is only well-defined when
+    # treatment_end is set, so TIS-derived metrics filter to completed only.
+    waits = [pt.wait_time for pt in p]
+    completed   = [pt for pt in p if pt.treatment_end is not None]
+    completed_c = [pt for pt in completed if pt.bed_type == "critical"]
+    completed_s = [pt for pt in completed if pt.bed_type == "standard"]
+    tis = [pt.time_in_system for pt in completed]
+    txs = [pt.treatment_duration for pt in completed if pt.treatment_duration is not None]
+    waits_c = [pt.wait_time for pt in p if pt.bed_type == "critical"]
+    waits_s = [pt.wait_time for pt in p if pt.bed_type == "standard"]
+    tis_c   = [pt.time_in_system for pt in completed_c]
+    tis_s   = [pt.time_in_system for pt in completed_s]
+    # KPI conventions:
+    #   "served"   = number of patients who FINISHED treatment within the
+    #                run horizon (the throughput count users expect on the
+    #                "Patients served" KPI).
+    #   "assigned" = number of patients who started treatment (got a bed),
+    #                including those still in service at horizon.
+    return {
+        "replication": rep_index + 1,
+        "duration":    r.duration,
+        "served":      len(completed),
+        "assigned":    len(p),
+        "critical":    {"capacity": r.critical_stats.capacity,
+                        "served":   len(completed_c),
+                        "assigned": len(waits_c),
+                        "utilization": util_c, "queue_samples": r.critical_stats.queue_samples,
+                        "wait_mean": (statistics.mean(waits_c) if waits_c else 0),
+                        "tis_mean":  (statistics.mean(tis_c) if tis_c else 0),
+                        "patient_count": len(waits_c)},
+        "standard":    {"capacity": r.standard_stats.capacity,
+                        "served":   len(completed_s),
+                        "assigned": len(waits_s),
+                        "utilization": util_s, "queue_samples": r.standard_stats.queue_samples,
+                        "wait_mean": (statistics.mean(waits_s) if waits_s else 0),
+                        "tis_mean":  (statistics.mean(tis_s) if tis_s else 0),
+                        "patient_count": len(waits_s)},
+        "wait":        {"n": len(waits), "mean": (statistics.mean(waits) if waits else 0),
+                        "max": (max(waits) if waits else 0), "values": waits},
+        "tis":         {"n": len(tis), "mean": (statistics.mean(tis) if tis else 0),
+                        "max": (max(tis) if tis else 0), "values": tis},
+        "tx":          {"n": len(txs), "mean": (statistics.mean(txs) if txs else 0), "values": txs},
+        "log":         r.log[:5000],
+    }
+
+reps = [serialize(i, r) for i, r in enumerate(result_list)]
+json.dumps(reps)
+`;
+  let serialized;
+  try {
+    serialized = await pyodide.runPythonAsync(code);
+  } catch (err) {
+    console.error(err);
+    setStatus('Simulation error', 'error');
+    runBtn.disabled = false;
+    runLabel.textContent = 'Run simulation';
+    if (progress) progress.classList.remove('on');
+    alert('Simulation error:\n' + err);
+    return;
+  }
+  const reps = JSON.parse(serialized);
+  renderResults(reps, s);
+  setStatus(`Done · ${reps.length} rep${reps.length>1?'s':''} · ${reps.reduce((a,r)=>a+r.served,0)} patients`, 'ready');
+  runBtn.disabled = false;
+  runLabel.textContent = 'Run again';
+  if (progress) progress.classList.remove('on');
+}
+
+/* ---------- Render ---------- */
+window.allCharts = [];
+
+function fmt(n, d=2) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return Number(n).toFixed(d);
+}
+
+function renderResults(reps, settings) {
+  emptyState.classList.add('hidden');
+  chartCards.forEach(c => c.classList.remove('hidden'));
+
+  const totalServed   = reps.reduce((a, r) => a + r.served, 0);
+  const totalAssigned = reps.reduce((a, r) => a + (r.assigned || r.served), 0);
+  const inFlight      = totalAssigned - totalServed;
+  const meanWait = (reps.reduce((a, r) => a + r.wait.mean, 0) / reps.length);
+  const meanTIS  = (reps.reduce((a, r) => a + r.tis.mean,  0) / reps.length);
+  const meanUtilC = (reps.reduce((a, r) => a + r.critical.utilization, 0) / reps.length) * 100;
+  const meanUtilS = (reps.reduce((a, r) => a + r.standard.utilization, 0) / reps.length) * 100;
+
+  document.getElementById('k-served').textContent     = totalServed;
+  const subText = inFlight > 0
+    ? `${reps.length} rep${reps.length>1?'s':''} · ${settings.selection_strategy} · +${inFlight} in-flight at horizon`
+    : `${reps.length} rep${reps.length>1?'s':''} · ${settings.selection_strategy}`;
+  document.getElementById('k-served-sub').textContent = subText;
+  document.getElementById('k-wait').innerHTML  = `${fmt(meanWait,1)}<span style="font-size:13px;color:var(--text-mut);font-weight:500"> min</span>`;
+  document.getElementById('k-tis').innerHTML   = `${fmt(meanTIS,1)}<span style="font-size:13px;color:var(--text-mut);font-weight:500"> min</span>`;
+  document.getElementById('k-util').innerHTML  = `${fmt(meanUtilC,0)}<span style="font-size:13px;color:var(--text-mut);font-weight:500">/${fmt(meanUtilS,0)}%</span>`;
+
+  const tbody = document.querySelector('#reps-table tbody');
+  tbody.innerHTML = reps.map(r => `
+    <tr>
+      <td>#${r.replication}</td>
+      <td>${r.served}</td>
+      <td>${fmt(r.wait.mean,1)}</td>
+      <td>${fmt(r.wait.max,1)}</td>
+      <td>${fmt(r.tis.mean,1)}</td>
+    </tr>
+  `).join('');
+
+  window.allCharts.forEach(c => c && c.destroy());
+  window.allCharts = [];
+
+  const allWaits = reps.flatMap(r => r.wait.values);
+  const allTIS   = reps.flatMap(r => r.tis.values);
+  window.allCharts.push(makeHistogram('chart-wait', allWaits, 12, '#60a5fa', '#1e3a8a'));
+  window.allCharts.push(makeHistogram('chart-tis',  allTIS,  12, '#3b82f6', '#0a1224'));
+  // Two side-by-side donuts, one per pool.
+  window.allCharts.push(makeDonut('chart-util-c', 'chart-util-c-label', meanUtilC, '#ef4444', '#7f1d1d'));
+  window.allCharts.push(makeDonut('chart-util-s', 'chart-util-s-label', meanUtilS, '#2dd4bf', '#134e4a'));
+  window.allCharts.push(makeQueueChart('chart-queue', reps[0]));
+
+  // Refresh theory + run validation.
+  const theory = updateQtTheoryDisplay();
+  compareSimToTheory(reps, theory, settings);
+  window.qtRunFresh = true;
+
+  // Store all-rep logs and enable the "View log" button in the KPI row.
+  window.lastRunLogs = reps.map(r => r.log || []);
+  const logBtn = document.getElementById('log-open-btn');
+  const logSub = document.getElementById('log-btn-sub');
+  if (logBtn) logBtn.disabled = false;
+  if (logSub) {
+    const total = reps.reduce((a, l) => a + (l.log ? l.log.length : 0), 0);
+    logSub.textContent = `${total.toLocaleString()} events · ${reps.length} rep${reps.length>1?'s':''}`;
+  }
+}
+
+/* ---------- Chart helpers ---------- */
+function chartColors() {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  return {
+    text:  dark ? '#8b95a8' : '#4a5568',
+    grid:  dark ? 'rgba(255,255,255,0.06)' : 'rgba(15,24,40,0.06)',
+  };
+}
+
+function makeHistogram(id, values, bins, colorTop, colorBottom) {
+  if (!values.length) return null;
+  const cx = chartColors();
+  const min = Math.min(...values), max = Math.max(...values) || 1;
+  const w = (max - min) / bins || 1;
+  const counts = Array(bins).fill(0);
+  values.forEach(v => {
+    const i = Math.min(bins - 1, Math.max(0, Math.floor((v - min) / w)));
+    counts[i]++;
+  });
+  const labels = counts.map((_, i) => (min + i * w).toFixed(0));
+  const canvas = document.getElementById(id);
+  const ctx = canvas.getContext('2d');
+  // Vertical gradient: bright blue at top -> deep navy at bottom.
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height || 220);
+  grad.addColorStop(0, colorTop);
+  grad.addColorStop(0.85, colorBottom);
+  grad.addColorStop(1, '#000');
+  return new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data: counts, backgroundColor: grad, borderRadius: 4, hoverBackgroundColor: colorTop }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(10, 18, 36, 0.95)', borderColor: 'rgba(96,165,250,0.3)', borderWidth: 1, padding: 8, titleFont: { size: 11 }, bodyFont: { size: 11 } } },
+      scales: {
+        x: { ticks: { color: cx.text, font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }, grid: { display: false } },
+        y: { ticks: { color: cx.text, font: { size: 10 } }, grid: { color: cx.grid }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+function makeDonut(canvasId, labelId, percent, fillColor, restColor) {
+  // Donut chart showing one pool's utilisation, with the percentage in the
+  // hole. ``percent`` is in 0..100 (already multiplied).
+  const canvas = document.getElementById(canvasId);
+  const labelEl = document.getElementById(labelId);
+  if (!canvas) return null;
+  const ctx = canvas.getContext('2d');
+  const value = Math.max(0, Math.min(100, percent || 0));
+  const remainder = 100 - value;
+  // Vertical gradient on the filled arc for a slight liquid-glass sheen.
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height || 160);
+  grad.addColorStop(0, fillColor);
+  grad.addColorStop(1, restColor);
+
+  if (labelEl) labelEl.textContent = value.toFixed(0) + '%';
+
+  return new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['utilised', 'idle'],
+      datasets: [{
+        data: [value, remainder],
+        backgroundColor: [grad, 'rgba(255,255,255,0.07)'],
+        borderColor: 'rgba(255,255,255,0.04)',
+        borderWidth: 1,
+        cutout: '70%',
+        hoverOffset: 3,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { animateRotate: true, duration: 600 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(10,18,36,0.95)',
+          borderColor: 'rgba(96,165,250,0.3)', borderWidth: 1, padding: 8,
+          titleFont: { size: 11 }, bodyFont: { size: 11 },
+          callbacks: { label: c => `${c.label}: ${c.parsed.toFixed(1)}%` }
+        }
+      }
+    }
+  });
+}
+
+/* ---------- Queueing-theory panel ---------- */
+function triMean(a, b, c) { return (a + b + c) / 3; }
+function triVar(a, b, c)  { return (a*a + b*b + c*c - a*b - a*c - b*c) / 18; }
+
+function erlangC(c, a) {
+  // Probability that an arriving customer must wait (Erlang-C). Returns 1
+  // for a saturated system. ``c`` is integer server count, ``a`` is the
+  // offered load in Erlangs.
+  if (c <= 0) return 1;
+  if (a >= c) return 1;
+  let s = 0, fact = 1;
+  for (let k = 0; k < c; k++) {
+    s += Math.pow(a, k) / fact;
+    fact *= (k + 1);
+  }
+  // fact is now c!
+  const last = Math.pow(a, c) / (fact * (1 - a / c));
+  return last / (s + last);
+}
+
+function poolPredictions(lambdaPool, esPool, cv2s, cServers) {
+  // Closed-form predictions for one pool. Allen-Cunneen M/G/c approximation.
+  if (cServers <= 0 || lambdaPool <= 0) {
+    return { rho: 0, Lq: 0, Wq: 0, W: esPool, stable: true };
+  }
+  const a = lambdaPool * esPool;
+  const rho = a / cServers;
+  if (rho >= 1) {
+    return { rho, Lq: Infinity, Wq: Infinity, W: Infinity, stable: false };
+  }
+  const cw = erlangC(cServers, a);
+  const lqMMc = cw * rho / (1 - rho);
+  const wqMMc = lqMMc / lambdaPool;
+  const wq = wqMMc * (1 + cv2s) / 2;   // M/G/c correction
+  const lq = lambdaPool * wq;
+  return { rho, Lq: lq, Wq: wq, W: wq + esPool, stable: true };
+}
+
+// Constants matching the SimPy DEFAULT_SETTINGS.
+const QT_SEV_MIN  = 1, QT_SEV_MAX = 10, QT_THRESHOLD = 7;
+const QT_CRIT_TRI = [20, 30, 45], QT_STD_TRI = [10, 15, 25];
+
+function computeTheory(settings) {
+  const lam   = 1 / settings.arrival_mean;
+  const pCrit = (QT_SEV_MAX - QT_THRESHOLD + 1) / (QT_SEV_MAX - QT_SEV_MIN + 1);
+  const pStd  = 1 - pCrit;
+  const esC   = triMean(...QT_CRIT_TRI);
+  const esS   = triMean(...QT_STD_TRI);
+  const cv2C  = triVar(...QT_CRIT_TRI) / (esC * esC);
+  const cv2S  = triVar(...QT_STD_TRI)  / (esS * esS);
+  return {
+    critical: poolPredictions(lam * pCrit, esC, cv2C, settings.critical_beds),
+    standard: poolPredictions(lam * pStd,  esS, cv2S, settings.standard_beds),
+  };
+}
+
+function fmtMetric(v, d=2) {
+  if (v === null || v === undefined || Number.isNaN(v)) return '—';
+  if (!Number.isFinite(v)) return '∞';
+  return Number(v).toFixed(d);
+}
+
+function setMark(elId, status) {
+  const el = document.getElementById(elId);
+  el.classList.remove('ok', 'warn', 'fail', 'idle');
+  el.classList.add(status);
+  el.textContent = status === 'ok'   ? '✓'
+                 : status === 'warn' ? '~'
+                 : status === 'fail' ? '✗'
+                 : '·';
+}
+
+function updateQtTheoryDisplay() {
+  const settings = readSettings();
+  const t = computeTheory(settings);
+
+  const beds = (n) => `${n} bed${n === 1 ? '' : 's'}`;
+  document.getElementById('qt-c-c').textContent = beds(settings.critical_beds);
+  document.getElementById('qt-c-s').textContent = beds(settings.standard_beds);
+
+  document.getElementById('qt-pool-critical').classList.toggle('unstable', !t.critical.stable);
+  document.getElementById('qt-pool-standard').classList.toggle('unstable', !t.standard.stable);
+
+  document.getElementById('qt-c-rho-thy').textContent = fmtMetric(t.critical.rho, 3);
+  document.getElementById('qt-c-lq-thy').textContent  = t.critical.stable ? fmtMetric(t.critical.Lq, 2) : '∞';
+  document.getElementById('qt-c-wq-thy').textContent  = t.critical.stable ? fmtMetric(t.critical.Wq, 2) + 'm' : '∞';
+  document.getElementById('qt-s-rho-thy').textContent = fmtMetric(t.standard.rho, 3);
+  document.getElementById('qt-s-lq-thy').textContent  = t.standard.stable ? fmtMetric(t.standard.Lq, 2) : '∞';
+  document.getElementById('qt-s-wq-thy').textContent  = t.standard.stable ? fmtMetric(t.standard.Wq, 2) + 'm' : '∞';
+
+  return t;
+}
+
+function compareSimToTheory(reps, theory, settings) {
+  // Aggregate sim metrics across replications, per pool. Uses pool-level
+  // wait_mean / queue_samples / utilization that are now serialised
+  // separately for "critical" and "standard" pools.
+  function poolSim(key) {
+    let rho = 0, lq = 0;
+    let weightedWait = 0, totalCount = 0;
+    for (const r of reps) {
+      const stat = r[key];
+      rho += stat.utilization;
+      const samples = stat.queue_samples || [];
+      lq += samples.length ? samples.reduce((a, x) => a + x, 0) / samples.length : 0;
+      const n = stat.patient_count || 0;
+      weightedWait += (stat.wait_mean || 0) * n;
+      totalCount += n;
+    }
+    return {
+      rho: rho / reps.length,
+      Lq:  lq / reps.length,
+      Wq:  totalCount > 0 ? weightedWait / totalCount : 0,
+    };
+  }
+  const sim = { critical: poolSim('critical'), standard: poolSim('standard') };
+
+  // Tolerance bands (sim/theory ratio):
+  //   rho:    +/- 15% pass, +/- 25% warn   (utilisation tracks theory tightly)
+  //   Lq, Wq: +/- 40% pass, +/- 70% warn   (Allen-Cunneen is approximate at low CV^2)
+  function checkRow(idPrefix, simVal, thyVal, isRho) {
+    const wqSuffix = idPrefix.includes('wq') ? 'm' : '';
+    const decimals = isRho ? 3 : 2;
+    document.getElementById(`${idPrefix}-sim`).textContent =
+      fmtMetric(simVal, decimals) + wqSuffix;
+
+    if (!Number.isFinite(thyVal)) {
+      // Theory says infinite (unstable). For rho we can still say "is the
+      // sim approaching saturation"; for Lq/Wq, no meaningful comparison
+      // exists with infinity, so we display "—" (idle status).
+      if (isRho) {
+        const ok = simVal > 0.92;
+        setMark(`${idPrefix}-mk`, ok ? 'ok' : 'warn');
+        return { state: ok ? 'pass' : 'warn', applicable: true };
+      }
+      setMark(`${idPrefix}-mk`, 'idle');
+      return { state: 'na', applicable: false };
+    }
+    if (thyVal === 0) {
+      const ok = simVal < 0.05;
+      setMark(`${idPrefix}-mk`, ok ? 'ok' : 'warn');
+      return { state: ok ? 'pass' : 'warn', applicable: true };
+    }
+    const r = simVal / thyVal;
+    const lo = isRho ? 0.85 : 0.60;
+    const hi = isRho ? 1.15 : 1.70;
+    const loW = isRho ? 0.75 : 0.30;
+    const hiW = isRho ? 1.25 : 2.20;
+    let state = 'fail';
+    if (r >= lo && r <= hi) state = 'pass';
+    else if (r >= loW && r <= hiW) state = 'warn';
+    setMark(`${idPrefix}-mk`, state === 'pass' ? 'ok' : state === 'warn' ? 'warn' : 'fail');
+    return { state, applicable: true };
+  }
+
+  const checks = [
+    checkRow('qt-c-rho', sim.critical.rho, theory.critical.rho, true),
+    checkRow('qt-c-lq',  sim.critical.Lq,  theory.critical.Lq,  false),
+    checkRow('qt-c-wq',  sim.critical.Wq,  theory.critical.Wq,  false),
+    checkRow('qt-s-rho', sim.standard.rho, theory.standard.rho, true),
+    checkRow('qt-s-lq',  sim.standard.Lq,  theory.standard.Lq,  false),
+    checkRow('qt-s-wq',  sim.standard.Wq,  theory.standard.Wq,  false),
+  ];
+
+  // Update overall badge.
+  const applicable = checks.filter(c => c.applicable);
+  const passes     = applicable.filter(c => c.state === 'pass').length;
+  const total      = applicable.length;
+  const unstable   = (!theory.critical.stable ? 1 : 0) + (!theory.standard.stable ? 1 : 0);
+
+  const badge = document.getElementById('qt-badge');
+  badge.classList.remove('pass', 'warn', 'fail');
+  if (total === 0) {
+    badge.classList.add('warn'); badge.textContent = 'unstable system';
+  } else if (passes === total) {
+    badge.classList.add('pass');
+    badge.textContent = unstable
+      ? `validated ${passes}/${total} · ${unstable} pool unstable`
+      : `validated · ${passes}/${total}`;
+  } else if (passes >= Math.ceil(total * 0.6)) {
+    badge.classList.add('warn'); badge.textContent = `partial · ${passes}/${total}`;
+  } else {
+    badge.classList.add('fail'); badge.textContent = `mismatch · ${passes}/${total}`;
+  }
+}
+
+// Live slider value bubbles.
+function syncSliderVal(id) {
+  const el = document.getElementById(id);
+  const out = document.getElementById(id + '_val');
+  if (!el || !out) return;
+  out.textContent = el.value;
+}
+['critical_beds', 'standard_beds'].forEach(id => {
+  syncSliderVal(id);
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', () => syncSliderVal(id));
+});
+
+// Strategy warning toggle.
+function updateStrategyNote() {
+  const sel = document.getElementById('selection_strategy');
+  const note = document.getElementById('qt-strategy-note');
+  if (!sel || !note) return;
+  note.hidden = (sel.value === 'FIFO');
+}
+
+// Stale-state cleanup: when any model/strategy input changes after a run,
+// clear the sim column and the per-row marks. Otherwise old sim values stay
+// on screen next to new theory and can look like a fresh validation.
+window.qtRunFresh = false;
+function invalidateQtRun() {
+  if (!window.qtRunFresh) return;
+  ['qt-c-rho', 'qt-c-lq', 'qt-c-wq', 'qt-s-rho', 'qt-s-lq', 'qt-s-wq']
+    .forEach(idPrefix => {
+      const sim = document.getElementById(`${idPrefix}-sim`);
+      if (sim) sim.textContent = '—';
+      setMark(`${idPrefix}-mk`, 'idle');
+    });
+  const badge = document.getElementById('qt-badge');
+  if (badge) {
+    badge.classList.remove('pass', 'warn', 'fail');
+    badge.classList.add('warn');
+    badge.textContent = 'rerun required';
+  }
+  window.qtRunFresh = false;
+}
+
+// Recompute theory + invalidate stale sim on any model-affecting input change.
+['arrival_mean', 'critical_beds', 'standard_beds', 'duration', 'seed', 'n_replications'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('input', () => {
+    updateQtTheoryDisplay();
+    invalidateQtRun();
+  });
+});
+const stratEl = document.getElementById('selection_strategy');
+if (stratEl) stratEl.addEventListener('change', () => {
+  updateStrategyNote();
+  invalidateQtRun();
+});
+
+// First paint
+updateQtTheoryDisplay();
+updateStrategyNote();
+
+function makeQueueChart(id, rep) {
+  const cx = chartColors();
+  const ctx = document.getElementById(id).getContext('2d');
+  const c = rep.critical.queue_samples;
+  const s = rep.standard.queue_samples;
+  const labels = c.map((_, i) => i);
+  return new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Critical', data: c, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.10)', fill: true, pointRadius: 0, tension: .25, borderWidth: 1.6 },
+        { label: 'Standard', data: s, borderColor: '#2dd4bf', backgroundColor: 'rgba(45,212,191,0.10)', fill: true, pointRadius: 0, tension: .25, borderWidth: 1.6 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: cx.text, boxWidth: 8, boxHeight: 8, font: { size: 10 } }, position: 'top', align: 'end' } },
+      scales: {
+        x: { ticks: { color: cx.text, font: { size: 10 }, maxTicksLimit: 6 }, grid: { display: false } },
+        y: { ticks: { color: cx.text, font: { size: 10 } }, grid: { color: cx.grid }, beginAtZero: true }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
