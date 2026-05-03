@@ -2,7 +2,7 @@
 
 Live, in-browser companion application for the WSC GenAI + Simulation Tutorial paper. One full-stack page with a sidebar of phase-by-phase tabs; each phase consumes the artefact produced by the previous one.
 
-Live: <https://mdehghani86.github.io/wsc2026-genai-simulation-tutorial/>
+Live: <https://mdehghani86.github.io/wsc26-genai-sim/>
 
 ## Tabs
 
