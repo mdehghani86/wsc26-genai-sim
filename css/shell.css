@@ -130,6 +130,93 @@ a:hover { border-bottom-color: var(--ai); }
 .foot-val.mono { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
 .foot-link { display: block; margin-top: 8px; font-size: 12px; color: var(--ai); }
 
+/* paper-pill: prominent button surfacing the live paper PDF */
+.paper-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px 7px 12px;
+  background: var(--surface);
+  border: 1px solid var(--sim);
+  color: var(--sim);
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 999px;
+  text-decoration: none;
+  border-bottom: 1px solid var(--sim);
+  transition: background 120ms, transform 120ms, box-shadow 120ms;
+  white-space: nowrap;
+}
+.paper-pill:hover {
+  background: var(--sim);
+  color: #fff;
+  border-bottom-color: var(--sim);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(153,122,34,0.28);
+}
+.paper-pill .pill-icon {
+  width: 16px; height: 18px;
+  display: inline-block;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  position: relative;
+  flex: 0 0 auto;
+}
+.paper-pill .pill-icon::before {
+  content: "";
+  position: absolute;
+  inset: 4px 3px;
+  background:
+    linear-gradient(currentColor, currentColor) top/100% 1.5px no-repeat,
+    linear-gradient(currentColor, currentColor) center/100% 1.5px no-repeat,
+    linear-gradient(currentColor, currentColor) bottom/70% 1.5px no-repeat;
+  opacity: 0.85;
+}
+.paper-pill .pill-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
+/* sidebar variant: dimmer, fits under the GitHub link */
+.foot-link.is-paper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 4px 10px 4px 8px;
+  background: var(--warm-card-2);
+  border: 1px solid var(--warm-line2);
+  border-radius: 999px;
+  color: var(--sim);
+  font-weight: 600;
+  font-family: 'Source Sans Pro', sans-serif;
+  border-bottom: 1px solid var(--warm-line2);
+  transition: border-color 120ms, color 120ms;
+}
+.foot-link.is-paper:hover { border-color: var(--sim); color: var(--sim); }
+.foot-link.is-paper .pill-icon { width: 11px; height: 13px; border: 1.2px solid currentColor; border-radius: 1.5px; }
+
+/* room for the pill on the home page-head */
+.page-head { display: grid; grid-template-columns: 1fr auto; column-gap: 24px; align-items: end; }
+.page-head > .page-eyebrow,
+.page-head > .page-title,
+.page-head > .page-lede { grid-column: 1; }
+.page-head > .head-actions {
+  grid-column: 2;
+  align-self: start;
+  padding-top: 8px;
+}
+@media (max-width: 720px) {
+  .page-head { grid-template-columns: 1fr; }
+  .page-head > .head-actions { grid-column: 1; padding-top: 6px; padding-bottom: 4px; }
+}
+
 /* =========================================================
    Main / pages
    ========================================================= */
