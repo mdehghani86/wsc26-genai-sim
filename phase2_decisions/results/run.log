@@ -1,0 +1,48 @@
+
+=== fifo ===
+  seed= 0  mean=  28.2  p95=  80.9  sev1=  74.6 sev3=  15.9  util=0.83  dec_lat=0 ms  n_dec=14
+  seed= 1  mean=  65.4  p95= 118.4  sev1=  42.7 sev3=  58.6  util=0.94  dec_lat=0 ms  n_dec=20
+  seed= 2  mean=  19.3  p95=  45.9  sev1=  14.4 sev3=  25.3  util=0.84  dec_lat=0 ms  n_dec=16
+  seed= 3  mean=  13.2  p95=  45.6  sev1=   9.3 sev3=  14.3  util=0.77  dec_lat=0 ms  n_dec=7
+  seed= 4  mean=  19.9  p95=  79.7  sev1=  10.9 sev3=  17.0  util=0.96  dec_lat=0 ms  n_dec=12
+  seed= 5  mean=   5.4  p95=  21.4  sev1=   5.1 sev3=   4.7  util=0.70  dec_lat=0 ms  n_dec=6
+  seed= 6  mean=  18.3  p95=  68.5  sev1=  26.4 sev3=  10.4  util=0.80  dec_lat=0 ms  n_dec=11
+  seed= 7  mean=  56.2  p95= 111.9  sev1=  39.5 sev3=  93.8  util=0.85  dec_lat=0 ms  n_dec=18
+
+=== severity_priority ===
+  seed= 0  mean=  37.2  p95= 162.7  sev1=  31.5 sev3=  53.3  util=0.86  dec_lat=0 ms  n_dec=15
+  seed= 1  mean=  85.2  p95= 266.1  sev1=  18.1 sev3= 218.0  util=0.92  dec_lat=0 ms  n_dec=20
+  seed= 2  mean=  20.7  p95=  59.9  sev1=   5.4 sev3=  33.1  util=0.83  dec_lat=0 ms  n_dec=16
+  seed= 3  mean=  13.1  p95=  45.5  sev1=   9.2 sev3=  14.3  util=0.77  dec_lat=0 ms  n_dec=7
+  seed= 4  mean=  20.0  p95=  80.1  sev1=   8.0 sev3=  17.6  util=0.95  dec_lat=0 ms  n_dec=12
+  seed= 5  mean=   5.6  p95=  29.1  sev1=   5.8 sev3=   5.0  util=0.70  dec_lat=0 ms  n_dec=6
+  seed= 6  mean=  20.2  p95=  97.6  sev1=  17.1 sev3=  26.1  util=0.84  dec_lat=0 ms  n_dec=11
+  seed= 7  mean=  61.9  p95= 157.7  sev1=   8.2 sev3= 145.5  util=0.93  dec_lat=0 ms  n_dec=18
+
+=== gpt-5.1 ===
+  seed= 0  mean=  37.2  p95= 162.7  sev1=  31.5 sev3=  53.3  util=0.86  dec_lat=1378 ms  n_dec=15
+  seed= 1  mean=  85.2  p95= 266.1  sev1=  18.1 sev3= 218.0  util=0.92  dec_lat=749 ms  n_dec=20
+  seed= 2  mean=  20.7  p95=  59.9  sev1=   5.4 sev3=  33.1  util=0.83  dec_lat=671 ms  n_dec=16
+  seed= 3  mean=  13.1  p95=  45.5  sev1=   9.2 sev3=  14.3  util=0.77  dec_lat=641 ms  n_dec=7
+  seed= 4  mean=  20.0  p95=  80.1  sev1=   8.0 sev3=  17.6  util=0.95  dec_lat=720 ms  n_dec=12
+  seed= 5  mean=   5.6  p95=  29.1  sev1=   5.8 sev3=   5.0  util=0.70  dec_lat=605 ms  n_dec=6
+  seed= 6  mean=  20.2  p95=  97.6  sev1=  17.1 sev3=  26.1  util=0.84  dec_lat=738 ms  n_dec=11
+  seed= 7  mean=  61.9  p95= 157.7  sev1=   8.2 sev3= 145.5  util=0.93  dec_lat=686 ms  n_dec=18
+
+=== gemini-2.5-flash ===
+  seed= 0  mean=  36.5  p95= 162.7  sev1=  31.5 sev3=  50.5  util=0.86  dec_lat=563 ms  n_dec=15
+  seed= 1  mean=  75.4  p95= 146.7  sev1=  18.5 sev3= 105.0  util=0.94  dec_lat=552 ms  n_dec=20
+  seed= 2  mean=  20.6  p95=  49.4  sev1=   5.1 sev3=  29.1  util=0.83  dec_lat=533 ms  n_dec=16
+  seed= 3  mean=  13.1  p95=  45.5  sev1=   9.2 sev3=  14.3  util=0.77  dec_lat=567 ms  n_dec=7
+  seed= 4  mean=  20.0  p95=  80.1  sev1=   8.0 sev3=  17.6  util=0.95  dec_lat=638 ms  n_dec=12
+  seed= 5  mean=   5.6  p95=  29.1  sev1=   5.8 sev3=   5.0  util=0.70  dec_lat=576 ms  n_dec=6
+  seed= 6  mean=  20.3  p95=  77.1  sev1=  17.1 sev3=  18.1  util=0.81  dec_lat=645 ms  n_dec=11
+  seed= 7  mean=  61.9  p95= 157.7  sev1=   8.2 sev3= 145.5  util=0.93  dec_lat=608 ms  n_dec=18
+
+
+=== RESULTS TABLE ===
+policy                         mean          p95        sev1        sev3         util   lat_ms
+fifo                     28.2 ± 21.2   71.5 ± 33.4   27.9 ± 23.5   30.0 ± 30.6  0.83 ± 0.08       0
+severity_priority        33.0 ± 27.3  112.3 ± 79.0   12.9 ±  8.9   64.1 ± 76.5  0.85 ± 0.09       0
+gpt-5.1                  33.0 ± 27.3  112.3 ± 79.0   12.9 ±  8.9   64.1 ± 76.5  0.85 ± 0.09     773
+gemini-2.5-flash         31.7 ± 24.7   93.5 ± 54.2   12.9 ±  9.0   48.1 ± 50.6  0.85 ± 0.09     585

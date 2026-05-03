@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 .venv/
 *.egg-info/
+phase2_decisions/results/full_traces.json
