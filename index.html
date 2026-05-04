@@ -12,6 +12,7 @@
 
 <link rel="stylesheet" href="css/shell.css" />
 <link rel="stylesheet" href="css/input-modelling.css" />
+<link rel="stylesheet" href="css/mcp.css" />
 
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
@@ -467,34 +468,48 @@ class Patient:
       <header class="page-head">
         <div class="page-eyebrow">Extension</div>
         <h1 class="page-title">Agentic AI via Model Context Protocol</h1>
-        <p class="page-lede">A SimPy MCP server exposes the simulator as a set of typed tools. The LLM does not write Python and does not see the source; it asks the simulator to do things, and the simulator answers. Two demos are planned here: a build-from-scratch loop that contrasts head-to-head with the vibe-coding baseline, and a validation loop that closes the gap most reviewers ask about.</p>
+        <p class="page-lede">A <code>simpy-mcp</code> server exposes the simulator as a small set of typed tools. The LLM does not write Python and does not see the source. It calls <code>define_resource</code>, <code>define_process</code>, <code>wire</code>, <code>run</code>, and <code>query_kpis</code>, and the server answers. The session below is recorded — but the server is real and runs in your browser via Pyodide, so every reply you see is the actual server output for that call.</p>
       </header>
-      <div class="cards">
-        <div class="card">
-          <div class="card-tag">Demo A</div>
-          <div class="card-title">Build the ED model from scratch</div>
-          <div class="card-body">Same Phase 0 prompt as vibe-coding, but the LLM constructs the model through tool calls. Iteration count, success rate, and diagnosability of failures sit next to the vibe-coding baseline so the contrast is direct.</div>
+
+      <div class="mcp-grid">
+
+        <div>
+          <div class="mcp-catalog">
+            <div class="mcp-catalog-head">Tool catalogue · simpy-mcp</div>
+            <div class="mcp-tool-grid">
+              <div class="mcp-tool"><span class="name">define_resource</span><span class="desc">name, capacity</span></div>
+              <div class="mcp-tool"><span class="name">define_process</span><span class="desc">name, kind, params</span></div>
+              <div class="mcp-tool"><span class="name">wire</span><span class="desc">producer → consumer</span></div>
+              <div class="mcp-tool"><span class="name">run</span><span class="desc">duration, reps, seed</span></div>
+              <div class="mcp-tool"><span class="name">query_kpis</span><span class="desc">group_by</span></div>
+            </div>
+          </div>
+
+          <div class="mcp-controls">
+            <button type="button" class="mcp-btn primary mcp-btn-next">Next step ▸</button>
+            <button type="button" class="mcp-btn mcp-btn-all">Run all</button>
+            <button type="button" class="mcp-btn mcp-btn-reset">Reset</button>
+            <span class="mcp-progress">0 / 0</span>
+          </div>
+
+          <div class="mcp-transcript"></div>
         </div>
-        <div class="card">
-          <div class="card-tag">Demo B &middot; primary</div>
-          <div class="card-title">Validation loop against queueing theory</div>
-          <div class="card-body">The Validator tool checks realised utilisation, queue length, and mean wait against Allen-Cunneen and Erlang-C. The LLM iterates until tolerances pass, or surfaces the structural bug if they do not. Bakes the WSC 2025 lessons-learned playbook directly into the protocol.</div>
-        </div>
+
+        <aside class="mcp-state">
+          <h4>Server state · resources</h4>
+          <ul class="mcp-state-list mcp-res-list"><li class="empty">(none defined)</li></ul>
+          <h4>Server state · processes</h4>
+          <ul class="mcp-state-list mcp-proc-list"><li class="empty">(none defined)</li></ul>
+          <h4>Server state · wirings</h4>
+          <ul class="mcp-state-list mcp-wire-list"><li class="empty">(none yet)</li></ul>
+          <div class="mcp-results"></div>
+        </aside>
+
       </div>
-      <div class="placeholder" style="margin-top:18px">
-        <div class="placeholder-title">Tool catalogue</div>
-        <div class="placeholder-body">
-          <code>define_resource(name, capacity)</code><br>
-          <code>define_process(name, generator_body)</code><br>
-          <code>wire(producer, consumer)</code><br>
-          <code>run(duration, replications, seed)</code><br>
-          <code>query_kpis(group_by)</code><br>
-          <code>validate_against_theory(pool, tolerance)</code>
-        </div>
-      </div>
-      <div class="connect-bar">
+
+      <div class="connect-bar" style="margin-top:18px">
         <div class="connect-key">Position</div>
-        <div class="connect-val">No published WSC paper has used MCP with a simulator as of writing. PDEVS-LLM (WSC 2025) and SimLLM (Jan 2026) are the closest neighbours and remain code-generation-flavoured; this tab is the protocol-flavoured complement.</div>
+        <div class="connect-val">PDEVS-LLM (WSC 2025) and SimLLM (Jan 2026) are the closest neighbours and remain code-generation-flavoured. This tab is the protocol-flavoured complement: instead of asking the LLM to emit a SimPy file, we expose a typed tool surface and let the LLM construct the model through calls.</div>
       </div>
     </section>
 
@@ -543,6 +558,7 @@ class Patient:
 <script src="js/shell.js" defer></script>
 <script src="js/pyodide-runtime.js" defer></script>
 <script src="js/input-modelling.js" defer></script>
+<script src="js/mcp.js" defer></script>
 
 </body>
 </html>

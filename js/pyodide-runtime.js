@@ -15,6 +15,7 @@
 
   let pyodide = null;
   let bootPromise = null;
+  let simpyLoaded = false;
 
   async function boot() {
     if (pyodide) return pyodide;
@@ -30,8 +31,23 @@
     return bootPromise;
   }
 
+  async function ensureSimpy() {
+    const py = await boot();
+    if (simpyLoaded) return py;
+    setStatus('loading simpy...');
+    await py.loadPackage('micropip');
+    await py.runPythonAsync(`
+import micropip
+await micropip.install('simpy')
+`);
+    simpyLoaded = true;
+    setStatus('ready', 'mono');
+    return py;
+  }
+
   window.Runtime = {
     boot,
+    ensureSimpy,
     py: () => pyodide,
     setStatus,
   };

@@ -13,7 +13,7 @@ Live: <https://mdehghani86.github.io/wsc26-genai-sim/>
 | 1b | Model creation | placeholder |
 | 2 | Execution | placeholder; the 2025 ER demo is preserved at `/legacy-2025/` |
 | 3 | Experimentation | placeholder |
-| + | Agentic AI via MCP | placeholder |
+| + | Agentic AI via MCP | live (Pyodide-backed simpy-mcp server, recorded LLM session) |
 | + | Frontier-LLM comparison | placeholder |
 
 ## Architecture

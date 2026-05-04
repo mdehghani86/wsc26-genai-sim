@@ -1,0 +1,71 @@
+{
+  "title": "LLM constructs the ED model through MCP tool calls",
+  "description": "Recorded session. Each step shows the LLM's utterance, the MCP tool call it issued, and the response from the simpy-mcp server. The server runs in your browser via Pyodide, so the responses are real.",
+  "steps": [
+    {
+      "utterance": "I have the brief in front of me. Three resource pools (triage, imaging, beds) plus a small lab. Let me define the resources first, smallest pool first.",
+      "tool": "define_resource",
+      "args": {"name": "triage", "capacity": 2}
+    },
+    {
+      "utterance": "Imaging is a single high-cost station; one machine.",
+      "tool": "define_resource",
+      "args": {"name": "imaging", "capacity": 1}
+    },
+    {
+      "utterance": "Beds: four inpatient slots per the brief.",
+      "tool": "define_resource",
+      "args": {"name": "beds", "capacity": 4}
+    },
+    {
+      "utterance": "Now the arrival process. The brief gave a 12-minute mean inter-arrival from the input-modelling step.",
+      "tool": "define_process",
+      "args": {"name": "arrivals", "kind": "arrival", "inter_arrival": ["exponential", 12.0]}
+    },
+    {
+      "utterance": "Triage is short — exponential with mean 5 minutes.",
+      "tool": "define_process",
+      "args": {"name": "triage_proc", "kind": "service", "resource": "triage", "service_time": ["exponential", 5.0]}
+    },
+    {
+      "utterance": "Imaging is the bottleneck — exponential mean 15 minutes per case.",
+      "tool": "define_process",
+      "args": {"name": "imaging_proc", "kind": "service", "resource": "imaging", "service_time": ["exponential", 15.0]}
+    },
+    {
+      "utterance": "Bed length-of-stay is heavy-tailed, so log-normal with the parameters from input modelling.",
+      "tool": "define_process",
+      "args": {"name": "admit_proc", "kind": "service", "resource": "beds", "service_time": ["lognormal", 4.05, 0.28]}
+    },
+    {
+      "utterance": "Now wire the producers to the consumers. Arrivals feed triage.",
+      "tool": "wire",
+      "args": {"producer": "arrivals", "consumer": "triage_proc"}
+    },
+    {
+      "utterance": "Triage routes to imaging or directly to admit; we'll let the server pick uniformly between the two consumers it sees.",
+      "tool": "wire",
+      "args": {"producer": "triage_proc", "consumer": "imaging_proc"}
+    },
+    {
+      "utterance": "And triage to admit as the alternate route.",
+      "tool": "wire",
+      "args": {"producer": "triage_proc", "consumer": "admit_proc"}
+    },
+    {
+      "utterance": "Imaging always feeds into admit when it finishes.",
+      "tool": "wire",
+      "args": {"producer": "imaging_proc", "consumer": "admit_proc"}
+    },
+    {
+      "utterance": "Construction complete. Five replications over an 8-hour shift, fixed seed.",
+      "tool": "run",
+      "args": {"duration": 480, "replications": 5, "seed": 42}
+    },
+    {
+      "utterance": "Pulling the per-resource KPIs grouped by pool.",
+      "tool": "query_kpis",
+      "args": {"group_by": "resource"}
+    }
+  ]
+}

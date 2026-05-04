@@ -25,6 +25,7 @@
     if (window.scrollTo) window.scrollTo(0, 0);
 
     document.dispatchEvent(new CustomEvent('route:change', { detail: { route } }));
+    document.dispatchEvent(new CustomEvent('route:' + route, { detail: { route } }));
   }
 
   window.addEventListener('hashchange', () => activate(readRoute()));
