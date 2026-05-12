@@ -14,6 +14,22 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+# Site-matching typography: prefer Outfit, fall back to Source Sans Pro, then sans.
+plt.rcParams.update({
+    "font.family":       ["Outfit", "Source Sans Pro", "DejaVu Sans"],
+    "font.size":         12,
+    "axes.titleweight":  "600",
+    "axes.titlesize":    13.5,
+    "axes.labelsize":    12.5,
+    "xtick.labelsize":   11.5,
+    "ytick.labelsize":   11.5,
+    "legend.fontsize":   11,
+    "axes.edgecolor":    "#D0D0D0",
+    "axes.labelcolor":   "#2A2A2A",
+    "xtick.color":       "#5e5e5e",
+    "ytick.color":       "#5e5e5e",
+})
+
 HERE = Path(__file__).parent
 SUMMARY = HERE / "summary.json"
 OUT_DIR = HERE.parents[3] / "GenAI_Tutorial_Paper" / "2_Figures"
@@ -70,7 +86,7 @@ def main():
     def annotate(xs, ys, dy=2):
         for xi, yi in zip(xs, ys):
             axL.text(xi, yi + dy, f"{yi:.1f}", ha="center", va="bottom",
-                     fontsize=8.5, color="#2A2A2A")
+                     fontsize=11, fontweight=600, color="#2A2A2A")
     annotate(x - w, means)
     annotate(x,     sev1)
     annotate(x + w, sev3)
@@ -96,7 +112,7 @@ def main():
         else:
             txt = f"{yi:.0f}"
         axR.text(xi, yi + max(latency) * 0.02, txt,
-                 ha="center", va="bottom", fontsize=9, color="#2A2A2A")
+                 ha="center", va="bottom", fontsize=11, fontweight=600, color="#2A2A2A")
     short_labels = ["FIFO", "Sev-pri", "GPT-5.1", "Gemini-flash"]
     axR.set_xticks(np.arange(len(POLICY_ORDER)))
     axR.set_xticklabels(short_labels, fontsize=9, rotation=20, ha="right")
