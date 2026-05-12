@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="css/input-modelling.css" />
 <link rel="stylesheet" href="css/mcp.css" />
 <link rel="stylesheet" href="css/vibe-coding.css" />
+<link rel="stylesheet" href="css/prompt-popover.css" />
 
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
@@ -39,47 +40,77 @@
       <div class="nav-section">Phases</div>
       <a href="#/home"             class="nav-item" data-route="home">
         <span class="nav-num">00</span>
-        <span class="nav-label">Overview</span>
+        <span class="nav-stack">
+          <span class="nav-label">Overview</span>
+          <span class="nav-desc">The four-phase workflow at a glance</span>
+        </span>
       </a>
       <a href="#/phase0"           class="nav-item" data-route="phase0">
         <span class="nav-num">0</span>
-        <span class="nav-label">Problem formulation</span>
+        <span class="nav-stack">
+          <span class="nav-label">Problem formulation</span>
+          <span class="nav-desc">Define the problem, scope, and KPIs</span>
+        </span>
       </a>
       <a href="#/input-modelling"  class="nav-item" data-route="input-modelling">
         <span class="nav-num">1a</span>
-        <span class="nav-label">Input modelling</span>
+        <span class="nav-stack">
+          <span class="nav-label">Input modelling</span>
+          <span class="nav-desc">Fit a distribution to arrival data</span>
+        </span>
       </a>
       <a href="#/model-creation"   class="nav-item" data-route="model-creation">
         <span class="nav-num">1b</span>
-        <span class="nav-label">Model creation</span>
+        <span class="nav-stack">
+          <span class="nav-label">Model creation</span>
+          <span class="nav-desc">Generate a runnable SimPy model</span>
+        </span>
       </a>
       <a href="#/execution"        class="nav-item" data-route="execution">
         <span class="nav-num">2</span>
-        <span class="nav-label">Execution</span>
+        <span class="nav-stack">
+          <span class="nav-label">Execution</span>
+          <span class="nav-desc">Run the simulation and narrate the trace</span>
+        </span>
       </a>
       <a href="#/experimentation"  class="nav-item" data-route="experimentation">
         <span class="nav-num">3</span>
-        <span class="nav-label">Experimentation</span>
+        <span class="nav-stack">
+          <span class="nav-label">Experimentation</span>
+          <span class="nav-desc">Sweep scenarios and score against KPIs</span>
+        </span>
       </a>
 
       <div class="nav-section">Extensions</div>
       <a href="#/mcp"              class="nav-item" data-route="mcp">
         <span class="nav-num">+</span>
-        <span class="nav-label">Agentic AI (MCP)</span>
+        <span class="nav-stack">
+          <span class="nav-label">Agentic AI (MCP)</span>
+          <span class="nav-desc">LLM builds the model via typed tools</span>
+        </span>
       </a>
       <a href="#/comparison"       class="nav-item" data-route="comparison">
         <span class="nav-num">+</span>
-        <span class="nav-label">LLM comparison</span>
+        <span class="nav-stack">
+          <span class="nav-label">LLM comparison</span>
+          <span class="nav-desc">Claude vs. GPT as in-sim decision agents</span>
+        </span>
       </a>
 
       <div class="nav-section">Project</div>
       <a href="#/about"            class="nav-item" data-route="about">
         <span class="nav-num">i</span>
-        <span class="nav-label">About &amp; cite</span>
+        <span class="nav-stack">
+          <span class="nav-label">About &amp; cite</span>
+          <span class="nav-desc">Authors, citation, and acknowledgements</span>
+        </span>
       </a>
       <a href="legacy-2025/index.html" class="nav-item nav-external" target="_blank" rel="noopener">
         <span class="nav-num">&laquo;</span>
-        <span class="nav-label">2025 ER demo</span>
+        <span class="nav-stack">
+          <span class="nav-label">2025 ER demo</span>
+          <span class="nav-desc">Previous edition (read-only archive)</span>
+        </span>
       </a>
     </nav>
 
@@ -207,6 +238,11 @@
         <div class="page-eyebrow">Phase 1a &middot; live tab</div>
         <h1 class="page-title">Input modelling</h1>
         <p class="page-lede">Pick demo arrival data or upload your own CSV. The LLM proposes candidate distributions; scipy runs goodness-of-fit tests in your browser via Pyodide; the test, not the LLM, decides the winner. The output is a copy-pasteable line that drops straight into the Phase 1b SimPy model.</p>
+        <div class="head-actions">
+          <button class="prompt-popover-trigger" data-prompt="input-modelling" type="button" title="Open a customisable copy of the LLM prompt used here.">
+            <span class="ppt-icon">&#10038;</span> Get this prompt
+          </button>
+        </div>
       </header>
 
       <!-- ===== Step 1: data picker ===== -->
@@ -347,6 +383,11 @@
         <div class="page-eyebrow">Phase 1b &middot; vibe coding with a validation gate</div>
         <h1 class="page-title">Model creation</h1>
         <p class="page-lede">A five-part structured prompt produces a SimPy file; Pyodide runs it; a five-check validation gate decides whether the artefact may travel forward to Phase 2. Off-the-shelf packages such as Simio or Arena enforce these invariants at draw time on a canvas. Here we enforce them after the fact, automatically, on probabilistic LLM output.</p>
+        <div class="head-actions">
+          <button class="prompt-popover-trigger" data-prompt="simpy-model" type="button" title="Open a customisable copy of the SimPy-generation prompt (servers, distributions, duration, seed).">
+            <span class="ppt-icon">&#10038;</span> Get this prompt
+          </button>
+        </div>
       </header>
 
       <!-- Step 1: prompt -->
@@ -561,6 +602,7 @@ class Patient:
 <script src="js/input-modelling.js" defer></script>
 <script src="js/mcp.js" defer></script>
 <script src="js/vibe-coding.js" defer></script>
+<script src="js/prompt-popover.js" defer></script>
 
 </body>
 </html>
