@@ -198,7 +198,7 @@ Write a 4-paragraph summary aimed at the original stakeholder (not at me). Ancho
 - name ONE event in the trace that explains it (cite the row)
 
 Do NOT recommend changes yet. Just describe what happened.`,
-      tip: 'The trace narration is for stakeholders, not for you. Keep it concrete — every claim must point back to a specific row in the log or a specific KPI.'
+      tip: 'The trace summary is for stakeholders, not for you. Keep it concrete — every claim must point back to a specific row in the log or a specific KPI.'
     },
 
     {

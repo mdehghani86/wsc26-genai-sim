@@ -228,7 +228,7 @@
 
       <div class="connect-bar">
         <div class="connect-key">This produces</div>
-        <div class="connect-val">A three-row schema. Row 2 (scope) feeds <a href="#/model-creation">Model creation</a>. Row 3 (KPIs) feeds <a href="#/experimentation">Experimentation</a>. Row 1 (problem) anchors the <a href="#/execution">Execution</a> narration.</div>
+        <div class="connect-val">A three-row schema. Row 2 (scope) feeds <a href="#/model-creation">Model creation</a>. Row 3 (KPIs) feeds <a href="#/experimentation">Experimentation</a>. Row 1 (problem) anchors the <a href="#/execution">Execution</a> stage.</div>
       </div>
     </section>
 
@@ -461,7 +461,7 @@ class Patient:
 
       <div class="connect-bar">
         <div class="connect-key">Hands off to</div>
-        <div class="connect-val">Phase 2 (<a href="#/execution">Execution</a>) reads this file and produces the trace narration. Phase 3 (<a href="#/experimentation">Experimentation</a>) runs scenario sweeps against it and scores them against the Phase 0 KPI list.</div>
+        <div class="connect-val">Phase 2 (<a href="#/execution">Execution</a>) consumes this file as the runtime model that the LLM-in-the-loop policies steer. Phase 3 (<a href="#/experimentation">Experimentation</a>) runs scenario sweeps against it and scores them against the Phase 0 KPI list.</div>
       </div>
 
       <!-- forward-looking other paths -->
@@ -469,7 +469,7 @@ class Patient:
         <div class="card">
           <div class="card-tag">Alternative path &middot; planned</div>
           <div class="card-title">Multi-agent (Builder + Validator + Explainer)</div>
-          <div class="card-body">Same five-check gate, split across three agents. Builder writes the file, Validator runs the gate, Explainer drafts the Phase 2 narration. Useful when one of the five checks fails on the same regeneration repeatedly.</div>
+          <div class="card-body">Same five-check gate, split across three agents. Builder writes the file, Validator runs the gate, Explainer drafts the Phase 2 summary. Useful when one of the five checks fails on the same regeneration repeatedly.</div>
         </div>
         <div class="card">
           <div class="card-tag">Alternative path &middot; planned</div>
@@ -488,7 +488,7 @@ class Patient:
       </header>
       <div class="placeholder">
         <div class="placeholder-title">2025 reference demo</div>
-        <div class="placeholder-body">The full WSC 2025 ER simulation is at <a href="legacy-2025/index.html" target="_blank" rel="noopener">legacy-2025/index.html</a>. The integrated 2026 version will fold trace narration, process orchestration, and outcome forecasting into this tab.</div>
+        <div class="placeholder-body">The full WSC 2025 ER simulation is at <a href="legacy-2025/index.html" target="_blank" rel="noopener">legacy-2025/index.html</a>. The integrated 2026 version, covering Entity Characterization, Orchestration, and Prediction, will be live in a future revision.</div>
       </div>
     </section>
 
@@ -577,7 +577,7 @@ class Patient:
       <div class="about-grid">
         <div class="about-block">
           <div class="about-key">Citation</div>
-          <div class="about-val">Dehghanimohammadi, M., Belsare, S., and Sadeghi, N. (2026). <em>A Tutorial on Generative AI and Simulation Modeling Integration</em>. Proceedings of the Winter Simulation Conference.</div>
+          <div class="about-val">Dehghani, M., Belsare, S., and Sadeghi, N. (2026). <em>A Tutorial on GenAI and Simulation Modeling Integration</em>. Proceedings of the Winter Simulation Conference.</div>
         </div>
         <div class="about-block">
           <div class="about-key">Repository</div>

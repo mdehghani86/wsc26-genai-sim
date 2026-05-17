@@ -52,4 +52,4 @@ A static server is required because the page fetches `data/*.csv` and Pyodide's 
 
 ## Citation
 
-Dehghanimohammadi, M., Belsare, S., and Sadeghi, N. (2026). *A Tutorial on Generative AI and Simulation Modeling Integration.* Proceedings of the Winter Simulation Conference.
+Dehghani, M., Belsare, S., and Sadeghi, N. (2026). *A Tutorial on GenAI and Simulation Modeling Integration.* Proceedings of the Winter Simulation Conference.
