@@ -12,6 +12,7 @@
 
 <link rel="stylesheet" href="css/shell.css" />
 <link rel="stylesheet" href="css/input-modelling.css" />
+<link rel="stylesheet" href="css/execution.css" />
 <link rel="stylesheet" href="css/mcp.css" />
 <link rel="stylesheet" href="css/vibe-coding.css" />
 <link rel="stylesheet" href="css/prompt-popover.css" />
@@ -484,11 +485,57 @@ class Patient:
       <header class="page-head">
         <div class="page-eyebrow">Phase 2</div>
         <h1 class="page-title">Execution</h1>
-        <p class="page-lede">Run the model, watch the event trace, read the LLM-narrated summary. The 2025 single-page ER demo is preserved as a reference implementation while the integrated version is built.</p>
+        <p class="page-lede">Run the SimPy ER model produced in Phase 1b. Per-pool utilisation, queue length, and time-in-system update live. Three LLM capabilities — <strong>Entity Characterization</strong>, <strong>Orchestration</strong>, and <strong>Prediction</strong> — layer on top of the same execution loop.</p>
       </header>
-      <div class="placeholder">
-        <div class="placeholder-title">2025 reference demo</div>
-        <div class="placeholder-body">The full WSC 2025 ER simulation is at <a href="legacy-2025/index.html" target="_blank" rel="noopener">legacy-2025/index.html</a>. The integrated 2026 version, covering Entity Characterization, Orchestration, and Prediction, will be live in a future revision.</div>
+
+      <div class="ex-cap-strip">
+        <div class="ex-cap-card ex-cap-sim">
+          <div class="ex-cap-tag">Entity Characterization</div>
+          <div class="ex-cap-body">After the run, the LLM narrates each patient's path through the system — severity, route, wait, and outcome — in plain English suitable for a clinical brief.</div>
+        </div>
+        <div class="ex-cap-card ex-cap-ai">
+          <div class="ex-cap-tag">Orchestration</div>
+          <div class="ex-cap-body">The LLM acts as the dispatcher. When a bed frees up, it picks which queued patient gets it, using context the FIFO rule cannot encode.</div>
+        </div>
+        <div class="ex-cap-card ex-cap-conv">
+          <div class="ex-cap-tag">Prediction</div>
+          <div class="ex-cap-body">The LLM forecasts the next-window arrival burst and treatment duration from the live state, so the simulator can pre-position resources.</div>
+        </div>
+      </div>
+
+      <div class="ex-run-panel">
+        <div class="ex-controls">
+          <label class="ex-ctrl"><span>Arrival mean (min)</span><input type="number" id="ex-arrival" value="6" min="0.5" step="0.5"></label>
+          <label class="ex-ctrl"><span>Critical beds</span><input type="number" id="ex-critical" value="2" min="1" max="8"></label>
+          <label class="ex-ctrl"><span>Standard beds</span><input type="number" id="ex-standard" value="4" min="1" max="12"></label>
+          <label class="ex-ctrl"><span>Duration (min)</span><input type="number" id="ex-duration" value="5000" min="100" step="500"></label>
+          <label class="ex-ctrl"><span>Strategy</span>
+            <select id="ex-strategy">
+              <option value="FIFO">FIFO</option>
+              <option value="ShortestExpectedTreatment">ShortestExpectedTreatment</option>
+            </select>
+          </label>
+          <button id="ex-run-btn" class="ex-run-btn" type="button">▸ Run simulation</button>
+        </div>
+        <div id="ex-status" class="ex-status">Idle. Click <em>Run simulation</em> to execute the Phase&nbsp;1b model in your browser via Pyodide.</div>
+      </div>
+
+      <div class="ex-results" id="ex-results" hidden>
+        <div class="ex-section-label">Key metrics</div>
+        <div class="ex-kpi-grid" id="ex-kpi-grid"></div>
+
+        <div class="ex-section-label">Per-pool comparison vs M/G/c theory</div>
+        <div class="ex-pool-grid" id="ex-pool-grid"></div>
+
+        <details class="ex-log-toggle">
+          <summary>Event log (first 500 lines)</summary>
+          <pre id="ex-log" class="ex-log"></pre>
+        </details>
+      </div>
+
+      <div class="ex-ref">
+        <div class="ex-ref-label">Reference</div>
+        <div class="ex-ref-body">The full WSC&nbsp;2025 ER demo — sliders, donut charts, M/G/c validation panel, capacity sweep — is preserved at <a href="legacy-2025/index.html" target="_blank" rel="noopener">legacy-2025/</a> for archival comparison.</div>
       </div>
     </section>
 
@@ -600,6 +647,7 @@ class Patient:
 <script src="js/shell.js" defer></script>
 <script src="js/pyodide-runtime.js" defer></script>
 <script src="js/input-modelling.js" defer></script>
+<script src="js/execution.js" defer></script>
 <script src="js/mcp.js" defer></script>
 <script src="js/vibe-coding.js" defer></script>
 <script src="js/prompt-popover.js" defer></script>

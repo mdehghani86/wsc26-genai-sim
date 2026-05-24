@@ -210,13 +210,41 @@
   padding: 0 12px 12px;
   border-top: 1px solid var(--warm-line2);
 }
+.vc-pre-wrap {
+  margin-top: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: var(--shadow-1);
+  border: 1px solid var(--warm-line);
+}
+.vc-pre-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 10px 7px 14px;
+  background: linear-gradient(90deg, #3a3a35, #2a2a2a);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.vc-pre-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(243,239,230,0.55);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .vc-recipe-pre {
-  position: relative;
   background: #2a2a2a;
   color: #f3efe6;
-  border-radius: 6px;
+  border-radius: 0;
   padding: 12px 14px;
-  margin-top: 12px;
+  margin: 0;
   font-family: 'JetBrains Mono', monospace;
   font-size: 11.5px;
   line-height: 1.55;
@@ -226,25 +254,35 @@
   overflow-y: auto;
 }
 .vc-copy {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(255,255,255,0.10);
-  color: #f3efe6;
-  border: 1px solid rgba(255,255,255,0.18);
+  background: var(--sim);
+  color: #fff;
+  border: 1px solid var(--sim);
   border-radius: 4px;
-  padding: 3px 9px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  padding: 5px 12px 5px 10px;
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  transition: background 120ms, color 120ms;
+  transition: all 120ms;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
-.vc-copy:hover { background: rgba(255,255,255,0.20); }
-.vc-copy.is-copied { background: var(--good); color: #fff; border-color: var(--good); }
-.vc-copy.is-failed { background: var(--warn); color: #fff; border-color: var(--warn); }
+.vc-copy::before {
+  content: "\2398";
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.9;
+}
+.vc-copy:hover { background: #b89328; border-color: #b89328; transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.32); }
+.vc-copy:active { transform: translateY(0); }
+.vc-copy.is-copied { background: var(--good); border-color: var(--good); }
+.vc-copy.is-copied::before { content: "\2713"; }
+.vc-copy.is-failed { background: var(--warn); border-color: var(--warn); }
+.vc-copy.is-failed::before { content: "!"; }
 
 /* keyboard focus rings — visible only for keyboard nav, not mouse clicks */
 .vc-fab:focus-visible,

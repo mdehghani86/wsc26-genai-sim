@@ -281,17 +281,21 @@ Return the experiment design as a table. No code.`,
     const copyBtn = el('button', {
       class: 'vc-copy',
       type: 'button',
-      text: 'copy',
+      text: 'Copy prompt',
       onclick: function () { copyText(r.prompt, copyBtn); }
     });
-    pre.appendChild(copyBtn);
+    const preHeader = el('div', { class: 'vc-pre-header' }, [
+      el('span', { class: 'vc-pre-label', text: 'Prompt — paste into Claude, ChatGPT, or Gemini' }),
+      copyBtn
+    ]);
+    const preWrap = el('div', { class: 'vc-pre-wrap' }, [preHeader, pre]);
 
     const tip = el('div', { class: 'vc-recipe-tip' }, [
       el('strong', { text: 'Tip' }),
       document.createTextNode(r.tip)
     ]);
 
-    const body = el('div', { class: 'vc-recipe-body' }, [pre, tip]);
+    const body = el('div', { class: 'vc-recipe-body' }, [preWrap, tip]);
 
     const recipe = el('details', {
       class: 'vc-recipe',

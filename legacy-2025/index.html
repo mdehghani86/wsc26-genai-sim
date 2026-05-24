@@ -1051,10 +1051,13 @@ class RunResult:
 
 def _log(env: simpy.Environment, log: list[str], pid: int | None, msg: str,
          verbose: bool) -> None:
+    """Skip log append entirely when not verbose so long runs do not OOM the
+    in-browser Python heap with millions of trace lines."""
+    if not verbose:
+        return
     line = f"[t={env.now:7.2f}]  pid={pid if pid is not None else '-':>3}  {msg}"
     log.append(line)
-    if verbose:
-        print(line)
+    print(line)
 
 
 def select_next_patient(waiting_list: list[Patient], strategy: str) -> Patient:
@@ -1108,7 +1111,7 @@ def treat_patient(env: simpy.Environment, patient: Patient, settings: dict,
         lo, mode, hi = settings["critical_tri"]
     else:
         lo, mode, hi = settings["standard_tri"]
-    duration = rng.triangular(lo, mode, hi)
+    duration = rng.triangular(lo, hi, mode)  # fix: Python signature is (low, high, mode)
     patient.treatment_duration = duration
     patient.treatment_start = env.now
     _log(env, log, patient.pid,
@@ -1220,7 +1223,18 @@ def queue_sampler(env: simpy.Environment,
                   waiting_lists: dict[str, list[Patient]],
                   critical_stats: ResourceStats,
                   standard_stats: ResourceStats,
-                  step: float = 1.0):
+                  step: float = 1.0,
+                  max_samples: int = 10000,
+                  duration: float | None = None):
+    """Bounded-memory queue sampler.
+
+    For short runs (<= max_samples minutes) we keep the original 1-min cadence.
+    For long runs we coarsen the sampling step so the stored list never grows
+    past ``max_samples`` entries. This avoids OOM in browser-side Pyodide on
+    multi-million-minute runs while keeping the time-averaged mean accurate.
+    """
+    if duration and duration > max_samples * step:
+        step = duration / max_samples
     while True:
         critical_stats.queue_samples.append(len(waiting_lists["critical"]))
         standard_stats.queue_samples.append(len(waiting_lists["standard"]))
@@ -1262,7 +1276,7 @@ def run_single_simulation(settings: dict | None = None) -> RunResult:
                                waiting_lists, new_arrival_events,
                                served, cfg, log))
 
-    env.process(queue_sampler(env, waiting_lists, critical_stats, standard_stats))
+    env.process(queue_sampler(env, waiting_lists, critical_stats, standard_stats, duration=cfg["duration"]))
 
     env.run(until=cfg["duration"])
 
