@@ -308,7 +308,7 @@ def aggregate(reps_json):
       }
       status.textContent = `Aggregating ${nReps} reps…`;
       py.globals.set('_reps', py.toPy(repJsons));
-      const jsonStr = await py.runPythonAsync(`aggregate(_reps.to_py())`);
+      const jsonStr = await py.runPythonAsync(`aggregate(list(_reps))`);
       const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
       const result = JSON.parse(jsonStr);
 
