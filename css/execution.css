@@ -128,6 +128,96 @@
 .ex-status.is-error { color: var(--warn); }
 .ex-status.is-ok    { color: var(--good); }
 
+/* ----- Progress bar (per-replication) ----- */
+.ex-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+.ex-progress-track {
+  position: relative;
+  flex: 1;
+  height: 10px;
+  background: var(--warm-card);
+  border: 1px solid var(--warm-line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.ex-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--sim) 0%, #b89328 50%, var(--sim) 100%);
+  border-radius: 999px;
+  transition: width 200ms ease;
+  position: relative;
+}
+.ex-progress-stripes {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: linear-gradient(
+    45deg,
+    rgba(255,255,255,0.18) 25%, transparent 25%,
+    transparent 50%, rgba(255,255,255,0.18) 50%,
+    rgba(255,255,255,0.18) 75%, transparent 75%, transparent
+  );
+  background-size: 14px 14px;
+  animation: ex-prog-march 0.9s linear infinite;
+  pointer-events: none;
+  border-radius: 999px;
+}
+@keyframes ex-prog-march {
+  from { background-position: 0 0; }
+  to   { background-position: 14px 0; }
+}
+.ex-progress-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 84px;
+  text-align: right;
+}
+
+/* ----- Toggle (event-log capture) ----- */
+.ex-ctrl-check {
+  flex: 0 0 auto;
+  align-items: stretch;
+}
+.ex-toggle {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 9px;
+  border: 1px solid var(--warm-line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  cursor: pointer;
+  user-select: none;
+  height: 34px;
+}
+.ex-toggle input { display: none; }
+.ex-toggle-track {
+  position: relative;
+  width: 32px;
+  height: 18px;
+  background: var(--warm-line);
+  border-radius: 999px;
+  transition: background 150ms;
+}
+.ex-toggle-dot {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.18);
+  transition: left 150ms;
+}
+.ex-toggle input:checked + .ex-toggle-track { background: var(--sim); }
+.ex-toggle input:checked + .ex-toggle-track .ex-toggle-dot { left: 16px; }
+
 /* ----- Results ----- */
 .ex-section-label {
   font-family: 'Source Sans Pro', sans-serif;

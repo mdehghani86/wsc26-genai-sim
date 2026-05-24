@@ -193,21 +193,20 @@ def run_once(cfg):
         log=log[:500],
     )
 
-def main(**overrides):
+def run_rep(**overrides):
+    """Run a single replication and return its JSON-serialisable dict."""
     cfg = {**DEFAULTS, **overrides}
-    n_reps = int(cfg.get("n_replications", 1))
-    base_seed = cfg["seed"]
-    reps = []
-    for r in range(n_reps):
-        rep_cfg = {**cfg, "seed": base_seed + r}
-        reps.append(run_once(rep_cfg))
-    # aggregate
-    def agg(key):
+    return json.dumps(run_once(cfg))
+
+def aggregate(reps_json):
+    """JS hands us a list of JSON strings; aggregate to mean + 95% CI."""
+    reps = [json.loads(s) for s in reps_json]
+    def agg_scalar(key):
         vals = [r[key] for r in reps]
         m = statistics.mean(vals)
         sd = statistics.stdev(vals) if len(vals) > 1 else 0.0
         half = 1.96 * sd / (len(vals) ** 0.5) if len(vals) > 1 else 0.0
-        return {"mean": m, "half": half, "values": vals}
+        return {"mean": m, "half": half}
     def agg_pool(side):
         out = {}
         for key in ("rho", "Lq", "Wq", "served"):
@@ -218,7 +217,6 @@ def main(**overrides):
             out[key] = {"mean": m, "half": half}
         out["capacity"] = reps[0][side]["capacity"]
         out["bed_type"] = reps[0][side]["bed_type"]
-        # pool histograms: pool waits + pool TIS from ALL reps combined
         out["wait_samples"] = []
         out["tis_samples"] = []
         for r in reps:
@@ -227,17 +225,22 @@ def main(**overrides):
         out["wait_samples"] = out["wait_samples"][:8000]
         out["tis_samples"]  = out["tis_samples"][:8000]
         return out
+    log_lines = []
+    for r in reps:
+        if r.get("log"):
+            log_lines.extend(r["log"])
+            if len(log_lines) >= 5000: break
     return json.dumps({
-        "n_replications": n_reps,
-        "duration": cfg["duration"],
-        "assigned":  agg("assigned"),
-        "completed": agg("completed"),
-        "tis_mean":  agg("tis_mean"),
-        "wait_mean": agg("wait_mean"),
-        "treat_mean":agg("treat_mean"),
+        "n_replications": len(reps),
+        "duration":  reps[0]["duration"],
+        "assigned":  agg_scalar("assigned"),
+        "completed": agg_scalar("completed"),
+        "tis_mean":  agg_scalar("tis_mean"),
+        "wait_mean": agg_scalar("wait_mean"),
+        "treat_mean":agg_scalar("treat_mean"),
         "critical":  agg_pool("critical"),
         "standard":  agg_pool("standard"),
-        "log":       reps[-1].get("log", [])[:500],
+        "log":       log_lines[:5000],
     })
 `;
 
@@ -256,6 +259,7 @@ def main(**overrides):
     const duration = parseFloat(el('ex-duration').value);
     const strategy = el('ex-strategy').value;
     const nReps    = Math.max(1, parseInt(el('ex-reps').value, 10) || 1);
+    const verbose  = el('ex-verbose').checked;
 
     if (!isFinite(arrival) || !isFinite(duration) || !critBeds || !stdBeds) {
       status.textContent = 'Bad input — please check the form.';
@@ -264,24 +268,47 @@ def main(**overrides):
       return;
     }
 
+    const prog     = el('ex-progress');
+    const progFill = el('ex-progress-fill');
+    const progLbl  = el('ex-progress-label');
+    function setProgress(done, total, msg) {
+      const pct = Math.round((done / total) * 100);
+      progFill.style.width = pct + '%';
+      progLbl.textContent = msg || `${done} / ${total} reps · ${pct}%`;
+    }
+
     try {
+      prog.hidden = false;
+      setProgress(0, nReps, pyReady ? `0 / ${nReps} reps · 0%` : 'Booting Pyodide…');
       status.textContent = pyReady ? `Running ${nReps} replication${nReps>1?'s':''}…` : 'Booting Pyodide + SimPy (first run only, ~10s)…';
       const py = await window.Runtime.ensureSimpy();
       if (!pyReady) {
         await py.runPythonAsync(SIM_PY);
         pyReady = true;
       }
-      status.textContent = `Simulating ${Math.round(duration).toLocaleString()} minutes × ${nReps} rep${nReps>1?'s':''}…`;
       const t0 = performance.now();
-      py.globals.set('_args', py.toPy({
-        arrival_mean: arrival,
-        critical_beds: critBeds,
-        standard_beds: stdBeds,
-        selection_strategy: strategy,
-        duration: duration,
-        n_replications: nReps,
-      }));
-      const jsonStr = await py.runPythonAsync(`main(**_args)`);
+      const repJsons = [];
+      for (let r = 0; r < nReps; r++) {
+        status.textContent = `Rep ${r + 1} of ${nReps} · simulating ${Math.round(duration).toLocaleString()} minutes…`;
+        setProgress(r, nReps);
+        py.globals.set('_args', py.toPy({
+          arrival_mean: arrival,
+          critical_beds: critBeds,
+          standard_beds: stdBeds,
+          selection_strategy: strategy,
+          duration: duration,
+          seed: 42 + r,
+          verbose: verbose,
+        }));
+        const repStr = await py.runPythonAsync(`run_rep(**_args)`);
+        repJsons.push(repStr);
+        setProgress(r + 1, nReps);
+        // yield to the UI so the bar updates between reps
+        await new Promise(res => setTimeout(res, 0));
+      }
+      status.textContent = `Aggregating ${nReps} reps…`;
+      py.globals.set('_reps', py.toPy(repJsons));
+      const jsonStr = await py.runPythonAsync(`aggregate(_reps.to_py())`);
       const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
       const result = JSON.parse(jsonStr);
 
@@ -300,10 +327,13 @@ def main(**overrides):
       const repNote = result.n_replications > 1 ? ` averaged over ${result.n_replications} reps` : '';
       status.textContent = `Done in ${elapsed}s${repNote} · ${assigned.toLocaleString()} patients assigned, ${completed.toLocaleString()} completed.`;
       status.className = 'ex-status is-ok';
+      setProgress(nReps, nReps, 'Done');
+      setTimeout(() => { prog.hidden = true; }, 800);
     } catch (e) {
       console.error(e);
       status.textContent = 'Error during run — ' + (e.message || e);
       status.className = 'ex-status is-error';
+      prog.hidden = true;
     } finally {
       btn.disabled = false;
     }

@@ -515,9 +515,23 @@ class Patient:
               <option value="ShortestExpectedTreatment">ShortestExpectedTreatment</option>
             </select>
           </label>
+          <label class="ex-ctrl ex-ctrl-check" title="Slow for long runs — every event appends to memory">
+            <span>Event log</span>
+            <span class="ex-toggle">
+              <input type="checkbox" id="ex-verbose">
+              <span class="ex-toggle-track"><span class="ex-toggle-dot"></span></span>
+            </span>
+          </label>
           <button id="ex-run-btn" class="ex-run-btn" type="button">▸ Run simulation</button>
         </div>
         <div id="ex-status" class="ex-status">Idle. Click <em>Run simulation</em> to execute the Phase&nbsp;1b model in your browser via Pyodide.</div>
+        <div id="ex-progress" class="ex-progress" hidden>
+          <div class="ex-progress-track">
+            <div class="ex-progress-fill" id="ex-progress-fill"></div>
+            <div class="ex-progress-stripes"></div>
+          </div>
+          <div class="ex-progress-label" id="ex-progress-label">0%</div>
+        </div>
       </div>
 
       <div class="ex-results" id="ex-results" hidden>
@@ -535,7 +549,7 @@ class Patient:
 
         <div class="ex-log-row">
           <button type="button" id="ex-log-popout" class="ex-log-btn" disabled>Open full event log in new tab</button>
-          <span class="ex-log-hint">Set <code>verbose=true</code> in the run config to get a full trace. By default the log is empty to keep long runs fast.</span>
+          <span class="ex-log-hint">Toggle <strong>Event log</strong> ON in the run controls before running, then open here. Each event appends to memory, so it slows long runs — leave OFF for 50k+ minute runs.</span>
         </div>
       </div>
 
