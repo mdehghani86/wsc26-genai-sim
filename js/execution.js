@@ -87,6 +87,7 @@ class Patient:
 @dataclass
 class ResourceStats:
     name: str
+    bed_type: str
     capacity: int
     served: int = 0
     busy_time: float = 0.0
@@ -155,8 +156,8 @@ def run_once(cfg):
     env = simpy.Environment()
     wl = {"critical": [], "standard": []}
     ev = {"critical": env.event(), "standard": env.event()}
-    cs = ResourceStats("CriticalCare", cfg["critical_beds"])
-    ss = ResourceStats("Standard", cfg["standard_beds"])
+    cs = ResourceStats("CriticalCare", "critical", cfg["critical_beds"])
+    ss = ResourceStats("Standard",     "standard", cfg["standard_beds"])
     served = []; log = []
     env.process(arrivals(env, wl, ev, cfg, log))
     for i in range(cfg["critical_beds"]):
@@ -177,14 +178,19 @@ def run_once(cfg):
     def pool(st):
         util = st.busy_time / (cfg["duration"] * st.capacity) if st.capacity else 0.0
         qmean = st.queue_sum / st.queue_count if st.queue_count else 0.0
-        wq = statistics.mean([p.wait_time for p in served if p.bed_type == st.name.split()[0].lower()]) if served else 0.0
-        return dict(name=st.name, capacity=st.capacity, served=st.served, rho=util, Lq=qmean, Wq=wq)
+        pool_waits = [p.wait_time for p in served if p.bed_type == st.bed_type]
+        pool_tis   = [p.time_in_system for p in completed if p.bed_type == st.bed_type]
+        wq = statistics.mean(pool_waits) if pool_waits else 0.0
+        return dict(name=st.name, bed_type=st.bed_type, capacity=st.capacity,
+                    served=st.served, rho=util, Lq=qmean, Wq=wq,
+                    wait_samples=pool_waits[:5000], tis_samples=pool_tis[:5000])
     return dict(
         duration=cfg["duration"], assigned=len(served), completed=len(completed),
         tis_mean=statistics.mean(tis) if tis else 0.0,
         wait_mean=statistics.mean(wait) if wait else 0.0,
         treat_mean=statistics.mean(treat_d) if treat_d else 0.0,
         critical=pool(cs), standard=pool(ss),
+        log=log[:500],
     )
 
 def main(**overrides):
@@ -266,6 +272,37 @@ def main(**overrides):
     `;
 
     el('ex-pool-grid').innerHTML = renderPool('critical', r.critical, thCrit) + renderPool('standard', r.standard, thStd);
+    renderHistograms(r.critical, r.standard);
+    wireLogButton(r.log || []);
+  }
+
+  function donutSVG(rho, kind) {
+    const pct = Math.min(1, Math.max(0, rho));
+    const C   = 2 * Math.PI * 40;
+    const off = C * (1 - pct);
+    const color = kind === 'critical' ? '#997A22' : '#1F6B73';
+    const bg    = kind === 'critical' ? '#E8DDB8' : '#C7E1E2';
+    return `
+      <svg class="ex-donut" viewBox="0 0 100 100" aria-label="utilisation ${(pct*100).toFixed(1)}%">
+        <circle cx="50" cy="50" r="40" fill="none" stroke="${bg}" stroke-width="12"/>
+        <circle cx="50" cy="50" r="40" fill="none" stroke="${color}" stroke-width="12"
+                stroke-dasharray="${C}" stroke-dashoffset="${off}"
+                stroke-linecap="round" transform="rotate(-90 50 50)"/>
+        <text x="50" y="50" text-anchor="middle" dy="2"
+              font-family="JetBrains Mono, monospace" font-size="18" font-weight="700"
+              fill="#2A2A2A">${(pct*100).toFixed(1)}%</text>
+        <text x="50" y="68" text-anchor="middle"
+              font-family="Source Sans Pro, sans-serif" font-size="8" font-weight="700"
+              letter-spacing="1" fill="#8B8772">UTIL</text>
+      </svg>
+    `;
+  }
+
+  function markFor(delta) {
+    const a = Math.abs(delta);
+    if (a <= 5)  return { sym: '✓', cls: 'is-ok',   tip: 'within 5%' };
+    if (a <= 15) return { sym: '~', cls: '',         tip: 'within 15%' };
+    return                { sym: '✗', cls: 'is-bad', tip: 'over 15%' };
   }
 
   function renderPool(kind, sim, theory) {
@@ -277,23 +314,108 @@ def main(**overrides):
       : `<span class="ex-stability is-unstable">ρ ≥ 1 unstable</span>`;
     const row = (lbl, th, sm) => {
       const delta = isFinite(th) && th !== 0 ? ((sm - th) / th) * 100 : 0;
-      const dCls = Math.abs(delta) <= 5 ? 'is-ok' : Math.abs(delta) <= 15 ? '' : 'is-bad';
+      const m = isFinite(th) ? markFor(delta) : { sym: '—', cls: '', tip: '' };
       const dTxt = isFinite(th) ? `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%` : '—';
       const thTxt = isFinite(th) ? th.toFixed(3) : '—';
-      return `<tr><td>${lbl}</td><td>${thTxt}</td><td class="sim">${sm.toFixed(3)}</td><td class="delta ${dCls}">${dTxt}</td></tr>`;
+      return `<tr>
+        <td>${lbl}</td>
+        <td>${thTxt}</td>
+        <td class="sim">${sm.toFixed(3)}</td>
+        <td class="delta ${m.cls}">${dTxt} <span class="mark ${m.cls}" title="${m.tip}">${m.sym}</span></td>
+      </tr>`;
     };
     return `
       <div class="ex-pool ${cls}">
         <h3>${title} <span class="badge">c = ${sim.capacity}</span> ${stabBadge}</h3>
-        <table>
-          <thead><tr><th>Metric</th><th>Theory</th><th>Simulation</th><th>Δ</th></tr></thead>
-          <tbody>
-            ${row('ρ (utilisation)', theory.rho, sim.rho)}
-            ${row('Lq', theory.Lq, sim.Lq)}
-            ${row('Wq', theory.Wq, sim.Wq)}
-          </tbody>
-        </table>
+        <div class="ex-pool-body">
+          <div class="ex-pool-donut">${donutSVG(sim.rho, kind)}</div>
+          <table>
+            <thead><tr><th>Metric</th><th>Theory</th><th>Simulation</th><th>Δ vs theory</th></tr></thead>
+            <tbody>
+              ${row('ρ (utilisation)', theory.rho, sim.rho)}
+              ${row('Lq', theory.Lq, sim.Lq)}
+              ${row('Wq', theory.Wq, sim.Wq)}
+            </tbody>
+          </table>
+        </div>
       </div>
     `;
+  }
+
+  function histogramSVG(samples, color, bg, bins) {
+    bins = bins || 18;
+    if (!samples || samples.length < 2) {
+      return `<div class="ex-hist-empty">No samples (no waits or empty pool)</div>`;
+    }
+    const min = Math.min(...samples), max = Math.max(...samples);
+    if (min === max) {
+      return `<div class="ex-hist-empty">All values = ${min.toFixed(2)} (no spread)</div>`;
+    }
+    const w = (max - min) / bins;
+    const counts = new Array(bins).fill(0);
+    for (const s of samples) {
+      let i = Math.min(bins - 1, Math.floor((s - min) / w));
+      counts[i]++;
+    }
+    const maxCount = Math.max(...counts);
+    const W = 360, H = 110, padL = 28, padB = 18, padR = 6, padT = 6;
+    const innerW = W - padL - padR, innerH = H - padB - padT;
+    const barW = innerW / bins;
+    let bars = '';
+    counts.forEach((c, i) => {
+      const h = (c / maxCount) * innerH;
+      bars += `<rect x="${padL + i*barW + 1}" y="${padT + innerH - h}" width="${barW - 2}" height="${h}" fill="${color}" opacity="0.85"/>`;
+    });
+    const mean = samples.reduce((a, b) => a + b, 0) / samples.length;
+    const meanX = padL + ((mean - min) / (max - min)) * innerW;
+    return `
+      <svg class="ex-hist" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+        <rect x="${padL}" y="${padT}" width="${innerW}" height="${innerH}" fill="${bg}" opacity="0.35"/>
+        ${bars}
+        <line x1="${meanX}" y1="${padT}" x2="${meanX}" y2="${padT + innerH}" stroke="#2A2A2A" stroke-width="1.2" stroke-dasharray="3,2"/>
+        <text x="${meanX}" y="${padT + 9}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#2A2A2A">μ ${mean.toFixed(1)}</text>
+        <text x="${padL}" y="${H - 4}" font-family="JetBrains Mono, monospace" font-size="9" fill="#8B8772">${min.toFixed(1)}</text>
+        <text x="${W - padR}" y="${H - 4}" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" fill="#8B8772">${max.toFixed(1)}</text>
+        <text x="${padL - 3}" y="${padT + 10}" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" fill="#8B8772">n=${samples.length}</text>
+      </svg>
+    `;
+  }
+
+  function renderHistograms(crit, std) {
+    const host = el('ex-hist-grid');
+    if (!host) return;
+    host.innerHTML = `
+      <div class="ex-hist-card">
+        <h4>Wait time · Critical <span class="ex-hist-unit">minutes</span></h4>
+        ${histogramSVG(crit.wait_samples, '#997A22', '#E8DDB8')}
+      </div>
+      <div class="ex-hist-card">
+        <h4>Wait time · Standard <span class="ex-hist-unit">minutes</span></h4>
+        ${histogramSVG(std.wait_samples, '#1F6B73', '#C7E1E2')}
+      </div>
+      <div class="ex-hist-card">
+        <h4>Time in system · Critical <span class="ex-hist-unit">minutes</span></h4>
+        ${histogramSVG(crit.tis_samples, '#762A4F', '#EFD9E2')}
+      </div>
+      <div class="ex-hist-card">
+        <h4>Time in system · Standard <span class="ex-hist-unit">minutes</span></h4>
+        ${histogramSVG(std.tis_samples, '#4A7C2E', '#DDE8C8')}
+      </div>
+    `;
+  }
+
+  function wireLogButton(lines) {
+    const btn = el('ex-log-popout');
+    if (!btn) return;
+    btn.disabled = !lines.length;
+    btn.onclick = function () {
+      if (!lines.length) return;
+      const body = lines.join('\n');
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Event log — Phase 2</title>
+<style>body{margin:0;padding:18px;background:#1a1a1a;color:#e8e2d3;font-family:JetBrains Mono,monospace;font-size:12px;line-height:1.5;white-space:pre}</style>
+</head><body>${body.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</body></html>`;
+      const blob = new Blob([html], { type: 'text/html' });
+      window.open(URL.createObjectURL(blob), '_blank');
+    };
   }
 })();

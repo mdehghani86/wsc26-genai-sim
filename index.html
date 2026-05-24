@@ -527,10 +527,13 @@ class Patient:
         <div class="ex-section-label">Per-pool comparison vs M/G/c theory</div>
         <div class="ex-pool-grid" id="ex-pool-grid"></div>
 
-        <details class="ex-log-toggle">
-          <summary>Event log (first 500 lines)</summary>
-          <pre id="ex-log" class="ex-log"></pre>
-        </details>
+        <div class="ex-section-label">Distributions</div>
+        <div class="ex-hist-grid" id="ex-hist-grid"></div>
+
+        <div class="ex-log-row">
+          <button type="button" id="ex-log-popout" class="ex-log-btn" disabled>Open full event log in new tab</button>
+          <span class="ex-log-hint">Set <code>verbose=true</code> in the run config to get a full trace. By default the log is empty to keep long runs fast.</span>
+        </div>
       </div>
 
       <div class="ex-ref">
