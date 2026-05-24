@@ -195,7 +195,50 @@ def run_once(cfg):
 
 def main(**overrides):
     cfg = {**DEFAULTS, **overrides}
-    return json.dumps(run_once(cfg))
+    n_reps = int(cfg.get("n_replications", 1))
+    base_seed = cfg["seed"]
+    reps = []
+    for r in range(n_reps):
+        rep_cfg = {**cfg, "seed": base_seed + r}
+        reps.append(run_once(rep_cfg))
+    # aggregate
+    def agg(key):
+        vals = [r[key] for r in reps]
+        m = statistics.mean(vals)
+        sd = statistics.stdev(vals) if len(vals) > 1 else 0.0
+        half = 1.96 * sd / (len(vals) ** 0.5) if len(vals) > 1 else 0.0
+        return {"mean": m, "half": half, "values": vals}
+    def agg_pool(side):
+        out = {}
+        for key in ("rho", "Lq", "Wq", "served"):
+            vals = [r[side][key] for r in reps]
+            m = statistics.mean(vals)
+            sd = statistics.stdev(vals) if len(vals) > 1 else 0.0
+            half = 1.96 * sd / (len(vals) ** 0.5) if len(vals) > 1 else 0.0
+            out[key] = {"mean": m, "half": half}
+        out["capacity"] = reps[0][side]["capacity"]
+        out["bed_type"] = reps[0][side]["bed_type"]
+        # pool histograms: pool waits + pool TIS from ALL reps combined
+        out["wait_samples"] = []
+        out["tis_samples"] = []
+        for r in reps:
+            out["wait_samples"].extend(r[side]["wait_samples"])
+            out["tis_samples"].extend(r[side]["tis_samples"])
+        out["wait_samples"] = out["wait_samples"][:8000]
+        out["tis_samples"]  = out["tis_samples"][:8000]
+        return out
+    return json.dumps({
+        "n_replications": n_reps,
+        "duration": cfg["duration"],
+        "assigned":  agg("assigned"),
+        "completed": agg("completed"),
+        "tis_mean":  agg("tis_mean"),
+        "wait_mean": agg("wait_mean"),
+        "treat_mean":agg("treat_mean"),
+        "critical":  agg_pool("critical"),
+        "standard":  agg_pool("standard"),
+        "log":       reps[-1].get("log", [])[:500],
+    })
 `;
 
   // ---------- Run ----------
@@ -212,6 +255,7 @@ def main(**overrides):
     const stdBeds  = parseInt(el('ex-standard').value, 10);
     const duration = parseFloat(el('ex-duration').value);
     const strategy = el('ex-strategy').value;
+    const nReps    = Math.max(1, parseInt(el('ex-reps').value, 10) || 1);
 
     if (!isFinite(arrival) || !isFinite(duration) || !critBeds || !stdBeds) {
       status.textContent = 'Bad input — please check the form.';
@@ -221,13 +265,13 @@ def main(**overrides):
     }
 
     try {
-      status.textContent = pyReady ? 'Running simulation…' : 'Booting Pyodide + SimPy (first run only, ~10s)…';
+      status.textContent = pyReady ? `Running ${nReps} replication${nReps>1?'s':''}…` : 'Booting Pyodide + SimPy (first run only, ~10s)…';
       const py = await window.Runtime.ensureSimpy();
       if (!pyReady) {
         await py.runPythonAsync(SIM_PY);
         pyReady = true;
       }
-      status.textContent = `Simulating ${Math.round(duration).toLocaleString()} minutes…`;
+      status.textContent = `Simulating ${Math.round(duration).toLocaleString()} minutes × ${nReps} rep${nReps>1?'s':''}…`;
       const t0 = performance.now();
       py.globals.set('_args', py.toPy({
         arrival_mean: arrival,
@@ -235,6 +279,7 @@ def main(**overrides):
         standard_beds: stdBeds,
         selection_strategy: strategy,
         duration: duration,
+        n_replications: nReps,
       }));
       const jsonStr = await py.runPythonAsync(`main(**_args)`);
       const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
@@ -250,7 +295,10 @@ def main(**overrides):
       const thStd  = mGcTheory(lambdaTotal * pStd,  stdBeds,  sStd.mean,  sStd.cs2);
 
       renderResults(result, thCrit, thStd, elapsed);
-      status.textContent = `Done in ${elapsed}s · ${result.assigned.toLocaleString()} patients assigned, ${result.completed.toLocaleString()} completed.`;
+      const assigned = Math.round(result.assigned.mean);
+      const completed = Math.round(result.completed.mean);
+      const repNote = result.n_replications > 1 ? ` averaged over ${result.n_replications} reps` : '';
+      status.textContent = `Done in ${elapsed}s${repNote} · ${assigned.toLocaleString()} patients assigned, ${completed.toLocaleString()} completed.`;
       status.className = 'ex-status is-ok';
     } catch (e) {
       console.error(e);
@@ -263,15 +311,17 @@ def main(**overrides):
 
   function renderResults(r, thCrit, thStd, elapsed) {
     el('ex-results').hidden = false;
+    const nrep = r.n_replications;
+    const ciTag = (a) => nrep > 1 ? `<div class="sub">±${a.half.toFixed(2)} (95% CI)</div>` : '';
     el('ex-kpi-grid').innerHTML = `
-      <div class="ex-kpi"><div class="lbl">Patients served</div><div class="val">${r.completed.toLocaleString()}</div><div class="sub">of ${r.assigned.toLocaleString()} assigned</div></div>
-      <div class="ex-kpi"><div class="lbl">Mean TIS</div><div class="val">${r.tis_mean.toFixed(2)}</div><div class="sub">minutes per patient</div></div>
-      <div class="ex-kpi"><div class="lbl">Mean wait</div><div class="val">${r.wait_mean.toFixed(2)}</div><div class="sub">minutes in queue</div></div>
-      <div class="ex-kpi"><div class="lbl">Mean treatment</div><div class="val">${r.treat_mean.toFixed(2)}</div><div class="sub">minutes per patient</div></div>
-      <div class="ex-kpi"><div class="lbl">Wall clock</div><div class="val">${elapsed}s</div><div class="sub">browser-side Pyodide</div></div>
+      <div class="ex-kpi"><div class="lbl">Patients served</div><div class="val">${Math.round(r.completed.mean).toLocaleString()}</div><div class="sub">of ${Math.round(r.assigned.mean).toLocaleString()} assigned${nrep > 1 ? ` · mean over ${nrep} reps` : ''}</div></div>
+      <div class="ex-kpi"><div class="lbl">Mean TIS</div><div class="val">${r.tis_mean.mean.toFixed(2)}</div>${ciTag(r.tis_mean) || '<div class="sub">minutes per patient</div>'}</div>
+      <div class="ex-kpi"><div class="lbl">Mean wait</div><div class="val">${r.wait_mean.mean.toFixed(2)}</div>${ciTag(r.wait_mean) || '<div class="sub">minutes in queue</div>'}</div>
+      <div class="ex-kpi"><div class="lbl">Mean treatment</div><div class="val">${r.treat_mean.mean.toFixed(2)}</div>${ciTag(r.treat_mean) || '<div class="sub">minutes per patient</div>'}</div>
+      <div class="ex-kpi"><div class="lbl">Wall clock</div><div class="val">${elapsed}s</div><div class="sub">${nrep > 1 ? nrep + ' reps · ' : ''}browser-side Pyodide</div></div>
     `;
 
-    el('ex-pool-grid').innerHTML = renderPool('critical', r.critical, thCrit) + renderPool('standard', r.standard, thStd);
+    el('ex-pool-grid').innerHTML = renderPool('critical', r.critical, thCrit, nrep) + renderPool('standard', r.standard, thStd, nrep);
     renderHistograms(r.critical, r.standard);
     wireLogButton(r.log || []);
   }
@@ -298,29 +348,38 @@ def main(**overrides):
     `;
   }
 
-  function markFor(delta) {
+  // Looser bands for Lq / Wq because Allen-Cunneen for M/G/c with c>1
+  // is itself approximate (Tijms 1986). ρ stays tight — it's a direct
+  // count and should match.
+  function markFor(delta, metric) {
     const a = Math.abs(delta);
-    if (a <= 5)  return { sym: '✓', cls: 'is-ok',   tip: 'within 5%' };
-    if (a <= 15) return { sym: '~', cls: '',         tip: 'within 15%' };
-    return                { sym: '✗', cls: 'is-bad', tip: 'over 15%' };
+    const bands = (metric === 'rho')
+      ? [5, 15]
+      : [10, 25];
+    if (a <= bands[0]) return { sym: '✓', cls: 'is-ok',  tip: `within ${bands[0]}%` };
+    if (a <= bands[1]) return { sym: '~', cls: '',         tip: `within ${bands[1]}%` };
+    return                { sym: '✗', cls: 'is-bad', tip: `over ${bands[1]}%` };
   }
 
-  function renderPool(kind, sim, theory) {
+  function renderPool(kind, sim, theory, nrep) {
     const cls   = kind === 'critical' ? 'is-critical' : 'is-standard';
     const title = kind === 'critical' ? 'Critical Care' : 'Standard Care';
-    const stable = sim.rho < 1 && theory.stable;
+    const stable = sim.rho.mean < 1 && theory.stable;
     const stabBadge = stable
       ? `<span class="ex-stability is-stable">ρ &lt; 1 stable</span>`
       : `<span class="ex-stability is-unstable">ρ ≥ 1 unstable</span>`;
-    const row = (lbl, th, sm) => {
+    const row = (lbl, th, smObj, metric) => {
+      const sm = smObj.mean;
+      const half = smObj.half;
       const delta = isFinite(th) && th !== 0 ? ((sm - th) / th) * 100 : 0;
-      const m = isFinite(th) ? markFor(delta) : { sym: '—', cls: '', tip: '' };
+      const m = isFinite(th) ? markFor(delta, metric) : { sym: '—', cls: '', tip: '' };
       const dTxt = isFinite(th) ? `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%` : '—';
       const thTxt = isFinite(th) ? th.toFixed(3) : '—';
+      const simTxt = nrep > 1 ? `${sm.toFixed(3)} <span class="ci">±${half.toFixed(3)}</span>` : sm.toFixed(3);
       return `<tr>
         <td>${lbl}</td>
         <td>${thTxt}</td>
-        <td class="sim">${sm.toFixed(3)}</td>
+        <td class="sim">${simTxt}</td>
         <td class="delta ${m.cls}">${dTxt} <span class="mark ${m.cls}" title="${m.tip}">${m.sym}</span></td>
       </tr>`;
     };
@@ -328,13 +387,13 @@ def main(**overrides):
       <div class="ex-pool ${cls}">
         <h3>${title} <span class="badge">c = ${sim.capacity}</span> ${stabBadge}</h3>
         <div class="ex-pool-body">
-          <div class="ex-pool-donut">${donutSVG(sim.rho, kind)}</div>
+          <div class="ex-pool-donut">${donutSVG(sim.rho.mean, kind)}</div>
           <table>
-            <thead><tr><th>Metric</th><th>Theory</th><th>Simulation</th><th>Δ vs theory</th></tr></thead>
+            <thead><tr><th>Metric</th><th>Theory</th><th>Simulation${nrep > 1 ? ' (mean ± 95% CI)' : ''}</th><th>Δ vs theory</th></tr></thead>
             <tbody>
-              ${row('ρ (utilisation)', theory.rho, sim.rho)}
-              ${row('Lq', theory.Lq, sim.Lq)}
-              ${row('Wq', theory.Wq, sim.Wq)}
+              ${row('ρ (utilisation)', theory.rho, sim.rho, 'rho')}
+              ${row('Lq', theory.Lq, sim.Lq, 'Lq')}
+              ${row('Wq', theory.Wq, sim.Wq, 'Wq')}
             </tbody>
           </table>
         </div>
@@ -343,7 +402,7 @@ def main(**overrides):
   }
 
   function histogramSVG(samples, color, bg, bins) {
-    bins = bins || 18;
+    bins = bins || 22;
     if (!samples || samples.length < 2) {
       return `<div class="ex-hist-empty">No samples (no waits or empty pool)</div>`;
     }
@@ -358,27 +417,53 @@ def main(**overrides):
       counts[i]++;
     }
     const maxCount = Math.max(...counts);
-    const W = 360, H = 110, padL = 28, padB = 18, padR = 6, padT = 6;
+    // pick a "nice" y-axis upper limit (round up maxCount to a clean number)
+    const yMax = niceCeil(maxCount);
+    const W = 380, H = 130, padL = 40, padB = 22, padR = 8, padT = 10;
     const innerW = W - padL - padR, innerH = H - padB - padT;
     const barW = innerW / bins;
     let bars = '';
     counts.forEach((c, i) => {
-      const h = (c / maxCount) * innerH;
-      bars += `<rect x="${padL + i*barW + 1}" y="${padT + innerH - h}" width="${barW - 2}" height="${h}" fill="${color}" opacity="0.85"/>`;
+      const h = (c / yMax) * innerH;
+      bars += `<rect x="${padL + i*barW + 1}" y="${padT + innerH - h}" width="${barW - 2}" height="${h}" fill="${color}" opacity="0.88"/>`;
+    });
+    // y-axis: 0, yMax/2, yMax
+    const yTicks = [0, yMax / 2, yMax];
+    let yAxis = '';
+    yTicks.forEach(v => {
+      const y = padT + innerH - (v / yMax) * innerH;
+      yAxis += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#D0D0D0" stroke-width="0.5" stroke-dasharray="2,3"/>`;
+      yAxis += `<text x="${padL - 4}" y="${y + 3}" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" fill="#8B8772">${Math.round(v)}</text>`;
     });
     const mean = samples.reduce((a, b) => a + b, 0) / samples.length;
     const meanX = padL + ((mean - min) / (max - min)) * innerW;
+    // mean label position: above plot area to avoid overlap with bars
     return `
       <svg class="ex-hist" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
-        <rect x="${padL}" y="${padT}" width="${innerW}" height="${innerH}" fill="${bg}" opacity="0.35"/>
+        ${yAxis}
         ${bars}
-        <line x1="${meanX}" y1="${padT}" x2="${meanX}" y2="${padT + innerH}" stroke="#2A2A2A" stroke-width="1.2" stroke-dasharray="3,2"/>
-        <text x="${meanX}" y="${padT + 9}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#2A2A2A">μ ${mean.toFixed(1)}</text>
-        <text x="${padL}" y="${H - 4}" font-family="JetBrains Mono, monospace" font-size="9" fill="#8B8772">${min.toFixed(1)}</text>
-        <text x="${W - padR}" y="${H - 4}" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" fill="#8B8772">${max.toFixed(1)}</text>
-        <text x="${padL - 3}" y="${padT + 10}" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" fill="#8B8772">n=${samples.length}</text>
+        <line x1="${padL}" y1="${padT + innerH}" x2="${W - padR}" y2="${padT + innerH}" stroke="#8B8772" stroke-width="0.8"/>
+        <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + innerH}" stroke="#8B8772" stroke-width="0.8"/>
+        <line x1="${meanX}" y1="${padT + 2}" x2="${meanX}" y2="${padT + innerH}" stroke="#2A2A2A" stroke-width="1.2" stroke-dasharray="3,2"/>
+        <rect x="${meanX - 22}" y="${padT - 9}" width="44" height="11" rx="2" fill="#2A2A2A"/>
+        <text x="${meanX}" y="${padT - 1}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#fff">μ ${mean.toFixed(1)}</text>
+        <text x="${padL}" y="${H - 6}" font-family="JetBrains Mono, monospace" font-size="9" fill="#8B8772">${min.toFixed(1)}</text>
+        <text x="${(padL + W - padR)/2}" y="${H - 6}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#8B8772">n=${samples.length.toLocaleString()}</text>
+        <text x="${W - padR}" y="${H - 6}" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" fill="#8B8772">${max.toFixed(1)}</text>
       </svg>
     `;
+  }
+
+  function niceCeil(x) {
+    if (x <= 0) return 1;
+    const exp = Math.pow(10, Math.floor(Math.log10(x)));
+    const f = x / exp;
+    let nf;
+    if (f <= 1) nf = 1;
+    else if (f <= 2) nf = 2;
+    else if (f <= 5) nf = 5;
+    else nf = 10;
+    return nf * exp;
   }
 
   function renderHistograms(crit, std) {

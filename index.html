@@ -508,6 +508,7 @@ class Patient:
           <label class="ex-ctrl"><span>Critical beds</span><input type="number" id="ex-critical" value="2" min="1" max="8"></label>
           <label class="ex-ctrl"><span>Standard beds</span><input type="number" id="ex-standard" value="4" min="1" max="12"></label>
           <label class="ex-ctrl"><span>Duration (min)</span><input type="number" id="ex-duration" value="5000" min="100" step="500"></label>
+          <label class="ex-ctrl"><span>Replications</span><input type="number" id="ex-reps" value="3" min="1" max="20"></label>
           <label class="ex-ctrl"><span>Strategy</span>
             <select id="ex-strategy">
               <option value="FIFO">FIFO</option>
@@ -524,6 +525,9 @@ class Patient:
         <div class="ex-kpi-grid" id="ex-kpi-grid"></div>
 
         <div class="ex-section-label">Per-pool comparison vs M/G/c theory</div>
+        <div class="ex-theory-note">
+          <strong>Note on the theory column.</strong> The "Theory" values use the Allen-Cunneen M/G/c approximation. It is exact for M/M/c (Cs² = 1) and known to underestimate Wq by up to 25-30% for low-CV service distributions like the triangular(20,30,45) and triangular(10,15,25) used here (Cs² ≈ 0.026 and 0.035). When the simulation is above the theory by that margin, the simulation is the more accurate value, not a bug.
+        </div>
         <div class="ex-pool-grid" id="ex-pool-grid"></div>
 
         <div class="ex-section-label">Distributions</div>
