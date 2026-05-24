@@ -98,28 +98,41 @@ def _expected_treatment(severity, s):
     lo, mode, hi = s["critical_tri"] if severity >= s["critical_threshold"] else s["standard_tri"]
     return lo + (hi - lo) * ((severity - s["severity_min"]) / max(1, s["severity_max"] - s["severity_min"]))
 
+LOG_CAP = 4000  # per-rep cap so verbose runs do not balloon memory
+
+def _log(env, log, verbose, pid, msg):
+    if not verbose or len(log) >= LOG_CAP:
+        return
+    p = str(pid) if pid is not None else "-"
+    log.append(f"[t={env.now:>9.2f}]  pid={p:>4}  {msg}")
+
 def select_next(wl, strategy):
     if strategy == "FIFO": return wl.pop(0)
     idx = min(range(len(wl)), key=lambda i: wl[i].expected_treatment)
     return wl.pop(idx)
 
 def treat(env, p, s, log):
-    rng = s["_rng"]
+    rng = s["_rng"]; verbose = s["verbose"]
     lo, mode, hi = s["critical_tri"] if p.bed_type == "critical" else s["standard_tri"]
     d = rng.triangular(lo, hi, mode)  # fix: Python signature is (low, high, mode)
     p.treatment_duration = d
     p.treatment_start = env.now
+    _log(env, log, verbose, p.pid, f"treatment START ({p.bed_type}, dur={d:.2f})")
     yield env.timeout(d)
     p.treatment_end = env.now
+    _log(env, log, verbose, p.pid, "treatment END")
 
 def patient(env, p, wl, ev, s, log):
+    verbose = s["verbose"]
+    _log(env, log, verbose, p.pid, f"ARRIVAL  severity={p.severity}  ->  {p.bed_type}")
     wl[p.bed_type].append(p)
+    _log(env, log, verbose, p.pid, f"queued ({p.bed_type})  queue_len={len(wl[p.bed_type])}")
     e = ev[p.bed_type]
     ev[p.bed_type] = env.event()
     if not e.triggered: e.succeed()
 
 def worker(env, bid, btype, stats, wl, ev, served, s, log):
-    strat = s["selection_strategy"]
+    strat = s["selection_strategy"]; verbose = s["verbose"]
     while True:
         while not wl[btype]:
             yield ev[btype]
@@ -128,6 +141,7 @@ def worker(env, bid, btype, stats, wl, ev, served, s, log):
         p.bed_assigned_time = env.now
         stats.served += 1
         served.append(p)
+        _log(env, log, verbose, p.pid, f"bed assigned  ({btype}/bed{bid})  wait={p.wait_time:.2f}")
         t0 = env.now
         yield env.process(treat(env, p, s, log))
         stats.busy_time += env.now - t0
@@ -288,9 +302,13 @@ def aggregate(reps_json):
       }
       const t0 = performance.now();
       const repJsons = [];
+      // yield-to-paint: rAF + microtask so the browser commits the
+      // progress-bar width change before the next sync Python call
+      const yieldPaint = () => new Promise(res => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(res, 30))));
       for (let r = 0; r < nReps; r++) {
         status.textContent = `Rep ${r + 1} of ${nReps} · simulating ${Math.round(duration).toLocaleString()} minutes…`;
-        setProgress(r, nReps);
+        setProgress(r, nReps, `Rep ${r + 1} / ${nReps} · ${Math.round((r / nReps) * 100)}%`);
+        await yieldPaint();
         py.globals.set('_args', py.toPy({
           arrival_mean: arrival,
           critical_beds: critBeds,
@@ -302,9 +320,8 @@ def aggregate(reps_json):
         }));
         const repStr = await py.runPythonAsync(`run_rep(**_args)`);
         repJsons.push(repStr);
-        setProgress(r + 1, nReps);
-        // yield to the UI so the bar updates between reps
-        await new Promise(res => setTimeout(res, 0));
+        setProgress(r + 1, nReps, `Rep ${r + 1} / ${nReps} done · ${Math.round(((r + 1) / nReps) * 100)}%`);
+        await yieldPaint();
       }
       status.textContent = `Aggregating ${nReps} reps…`;
       py.globals.set('_reps', py.toPy(repJsons));
