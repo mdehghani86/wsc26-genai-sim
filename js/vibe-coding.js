@@ -1,8 +1,17 @@
 /* =========================================================
    Vibe-coding recipes.
-   Floating launcher button + slide-in panel with seven
+   Floating launcher button + slide-in panel with eight
    copy-paste prompts that walk a user from a vague problem
-   to a validated SimPy model using any LLM.
+   to a validated SimPy model using any LLM. The eight recipes
+   map onto the paper's five-stage framework:
+     1. Frame the problem             -> Stage 0
+     2. Fit the input data            -> Stage 1.1 Input modelling
+     3. Generate the SimPy model      -> Stage 1.2 Model generation
+     4. Static code audit             -> Stage 1.2 validation gate (checks 1-3)
+     5. Fix-it loop                   -> Stage 1.2 failed-check feedback
+     6. Post-run numeric validation   -> Stage 1.2 validation gate (checks 4-5)
+     7. Narrate the trace             -> Stage 2 Execution (post-run summary)
+     8. Design a scenario sweep       -> Stage 3 Experimentation
    No dependencies. Persists open/closed state in localStorage
    only for the "first-time pulse" hint.
    ========================================================= */

@@ -43,7 +43,7 @@
         <span class="nav-num">00</span>
         <span class="nav-stack">
           <span class="nav-label">Overview</span>
-          <span class="nav-desc">The four-phase workflow at a glance</span>
+          <span class="nav-desc">The five-stage workflow at a glance</span>
         </span>
       </a>
       <a href="#/phase0"           class="nav-item" data-route="phase0">
@@ -82,19 +82,18 @@
         </span>
       </a>
 
-      <div class="nav-section">Extensions</div>
       <a href="#/mcp"              class="nav-item" data-route="mcp">
-        <span class="nav-num">+</span>
+        <span class="nav-num">1c</span>
         <span class="nav-stack">
           <span class="nav-label">Agentic AI (MCP)</span>
-          <span class="nav-desc">LLM builds the model via typed tools</span>
+          <span class="nav-desc">Stage 1.3 — LLM builds via typed tools</span>
         </span>
       </a>
       <a href="#/comparison"       class="nav-item" data-route="comparison">
-        <span class="nav-num">+</span>
+        <span class="nav-num">4</span>
         <span class="nav-stack">
-          <span class="nav-label">LLM comparison</span>
-          <span class="nav-desc">Claude vs. GPT as in-sim decision agents</span>
+          <span class="nav-label">Evaluation</span>
+          <span class="nav-desc">Reproducibility, validation, benchmarking</span>
         </span>
       </a>
 
@@ -137,7 +136,7 @@
       <header class="page-head">
         <div class="page-eyebrow">Companion application</div>
         <h1 class="page-title">A tutorial on Generative AI and Simulation Modeling Integration</h1>
-        <p class="page-lede">A live, in-browser walk-through of the four-phase GenAI-driven simulation workflow. Each tab on the left maps to one phase of the paper, and each phase consumes the artefact produced by the previous one. There is no backend: every Python cell on this site runs in your browser via Pyodide.</p>
+        <p class="page-lede">A live, in-browser walk-through of the <strong>five-stage</strong> GenAI-driven simulation framework from the paper: Problem Formulation, Creation, Execution, Experimentation, and Evaluation. Each stage holds three rising-complexity LLM contributions. Every Python cell on this site runs in your browser via Pyodide — no backend, no installs.</p>
         <div class="head-actions">
           <a class="paper-pill" href="paper.pdf" target="_blank" rel="noopener">
             <span class="pill-icon"></span>
@@ -161,29 +160,34 @@
         <a class="card" href="#/model-creation">
           <div class="card-tag">Phase 1b</div>
           <div class="card-title">Model creation</div>
-          <div class="card-body">From the Phase 0 schema and the Phase 1a fitted distribution, generate a runnable SimPy model. Compare vibe-coding, multi-agent, and MCP paths.</div>
+          <div class="card-body">From the Phase 0 schema and the Phase 1a fitted distribution, generate a runnable SimPy model via a five-row structured prompt (role, goal, scenario, inputs, output) protected by a five-check validation gate.</div>
+        </a>
+        <a class="card" href="#/mcp">
+          <div class="card-tag">Phase 1c</div>
+          <div class="card-title">Agentic AI via MCP</div>
+          <div class="card-body">Stage 1.3 — Agentic Construction. The LLM constructs the simulation by calling typed tools (define_resource, define_process, run, query_kpis) over the Model Context Protocol, instead of emitting a one-shot file.</div>
         </a>
         <a class="card" href="#/execution">
           <div class="card-tag">Phase 2</div>
           <div class="card-title">Execution</div>
-          <div class="card-body">Run the simulation, narrate the trace in plain English, and surface the events that matter for the Phase 0 problem statement.</div>
+          <div class="card-body">Run the SimPy model and watch per-pool ρ, Lq, Wq update live with M/G/c theory comparison. Three LLM capabilities layer on top: Entity Characterization, Orchestration (LLM-in-the-loop bed assignment), Prediction.</div>
         </a>
         <a class="card" href="#/experimentation">
           <div class="card-tag">Phase 3</div>
           <div class="card-title">Experimentation</div>
-          <div class="card-body">Scenario sweeps and results interpretation, scored against the Phase 0 KPI list.</div>
+          <div class="card-body">Three rising-complexity contributions: Summary Generation (figure selection + narrative), Scenario Ideation (factors and levels from the brief), Optimisation (LLM-driven parameter search with explicit caveats).</div>
         </a>
-        <a class="card" href="#/mcp">
-          <div class="card-tag">Extension</div>
-          <div class="card-title">Agentic AI via MCP</div>
-          <div class="card-body">An LLM constructs the simulation by calling typed tools (define_resource, define_process, run, query_kpis) over the Model Context Protocol.</div>
+        <a class="card" href="#/comparison">
+          <div class="card-tag">Phase 4</div>
+          <div class="card-title">Evaluation</div>
+          <div class="card-body">Closes the loop with Reproducibility (every figure regenerable from the repo), Validation (cross-checks against M/G/c bounds and Arena/Simio), and Benchmarking (paired-seed frontier-LLM comparison).</div>
         </a>
       </section>
 
       <section class="callout">
         <div class="callout-row">
           <div class="callout-key">Connectivity spine</div>
-          <div class="callout-val">Phase 0 &rarr; Phase 1a &rarr; Phase 1b &rarr; Phase 2 &rarr; Phase 3. Every page tells you which artefact it consumed and which artefact it produces.</div>
+          <div class="callout-val">Stage 0 &rarr; Stage 1 (Input modelling &rarr; Model generation &rarr; Agentic construction) &rarr; Stage 2 &rarr; Stage 3 &rarr; Stage 4. Every page tells you which artefact it consumed and which artefact it produces.</div>
         </div>
         <div class="callout-row">
           <div class="callout-key">Reproducibility</div>
@@ -465,18 +469,13 @@ class Patient:
         <div class="connect-val">Phase 2 (<a href="#/execution">Execution</a>) consumes this file as the runtime model that the LLM-in-the-loop policies steer. Phase 3 (<a href="#/experimentation">Experimentation</a>) runs scenario sweeps against it and scores them against the Phase 0 KPI list.</div>
       </div>
 
-      <!-- forward-looking other paths -->
+      <!-- alternative path (paper Section 5.3 — Agentic Construction) -->
       <div class="cards" style="margin-top:22px">
-        <div class="card">
-          <div class="card-tag">Alternative path &middot; planned</div>
-          <div class="card-title">Multi-agent (Builder + Validator + Explainer)</div>
-          <div class="card-body">Same five-check gate, split across three agents. Builder writes the file, Validator runs the gate, Explainer drafts the Phase 2 summary. Useful when one of the five checks fails on the same regeneration repeatedly.</div>
-        </div>
-        <div class="card">
-          <div class="card-tag">Alternative path &middot; planned</div>
-          <div class="card-title">MCP tool-call loop</div>
-          <div class="card-body">The LLM does not write Python at all; it calls typed tools (<code>define_resource</code>, <code>wire</code>, <code>run</code>, <code>validate_against_theory</code>). State lives in the simulator, the validation gate runs as a tool, and there is no SimPy file to validate after the fact.</div>
-        </div>
+        <a class="card" href="#/mcp">
+          <div class="card-tag">Stage 1.3 &middot; alternative path</div>
+          <div class="card-title">Agentic construction via MCP</div>
+          <div class="card-body">Three failed gate rounds escalate the case to the agentic-construction route. The LLM stops emitting one-shot files and instead issues typed calls (<code>define_resource</code>, <code>define_process</code>, <code>wire</code>, <code>run</code>, <code>query_kpis</code>) against a small simulation API. Feedback arrives at every step instead of after the whole file. See Section 5.3 of the paper.</div>
+        </a>
       </div>
     </section>
 
@@ -545,20 +544,20 @@ class Patient:
     <!-- EXPERIMENTATION -->
     <section class="page" data-page="experimentation">
       <header class="page-head">
-        <div class="page-eyebrow">Phase 3</div>
+        <div class="page-eyebrow">Phase 3 &middot; Section 7 of the paper</div>
         <h1 class="page-title">Experimentation</h1>
-        <p class="page-lede">Scenario sweeps and result interpretation, scored against the Phase 0 KPI list.</p>
+        <p class="page-lede">Design the scenario set, sweep parameters, and turn results into something a reader can act on. Three rising-complexity LLM contributions: <strong>Summary Generation</strong> (figure selection plus a short written interpretation), <strong>Scenario Ideation</strong> (factors and levels proposed directly from the Phase 0 brief), and <strong>Optimisation</strong> (LLM-driven parameter search, used only on small designs with cheap evaluations).</p>
       </header>
       <div class="placeholder">
-        <div class="placeholder-title">Coming next</div>
-        <div class="placeholder-body">A small DOE table that the user can edit, run, and have the LLM interpret. Output charts will be plain Chart.js so they can be saved straight into a paper.</div>
+        <div class="placeholder-title">In-browser demo coming next</div>
+        <div class="placeholder-body">A small DOE table the user can edit, run, and have the LLM interpret. Output charts will be plain SVG matching the paper figures. Until then the methodology, KPI list, and worked ED example are in Section 7 of the <a href="paper.pdf" target="_blank" rel="noopener">paper PDF</a>.</div>
       </div>
     </section>
 
     <!-- MCP -->
     <section class="page" data-page="mcp">
       <header class="page-head">
-        <div class="page-eyebrow">Extension</div>
+        <div class="page-eyebrow">Stage 1.3 &middot; Agentic construction (Section 5.3)</div>
         <h1 class="page-title">Agentic AI via Model Context Protocol</h1>
         <p class="page-lede">A <code>simpy-mcp</code> server exposes the simulator as a small set of typed tools. The LLM does not write Python and does not see the source. It calls <code>define_resource</code>, <code>define_process</code>, <code>wire</code>, <code>run</code>, and <code>query_kpis</code>, and the server answers. The session below is recorded — but the server is real and runs in your browser via Pyodide, so every reply you see is the actual server output for that call.</p>
       </header>
@@ -608,13 +607,13 @@ class Patient:
     <!-- COMPARISON -->
     <section class="page" data-page="comparison">
       <header class="page-head">
-        <div class="page-eyebrow">Extension</div>
-        <h1 class="page-title">Frontier-LLM comparison</h1>
-        <p class="page-lede">Same prompt, three frontier models, scored on first-try success, KPI agreement, and adherence to the required modular structure.</p>
+        <div class="page-eyebrow">Phase 4 &middot; Section 8 of the paper</div>
+        <h1 class="page-title">Evaluation</h1>
+        <p class="page-lede">Close the loop with three rising-complexity LLM contributions: <strong>Reproducibility</strong> (every figure, prompt, and result regenerable from this repo, exercisable in your browser), <strong>Validation</strong> (KPIs cross-checked against closed-form M/G/c bounds and a commercial Arena or Simio reference), and <strong>Benchmarking</strong> (the same harness run against multiple frontier LLMs on paired seeds — the bed-assignment policy table from Section 6.2 is the worked instance).</p>
       </header>
       <div class="placeholder">
-        <div class="placeholder-title">Coming next</div>
-        <div class="placeholder-body">A single results table embedded here, mirroring Section 9 of the paper.</div>
+        <div class="placeholder-title">Live benchmark coming next</div>
+        <div class="placeholder-body">A single results table embedded here, mirroring Table 1 of the paper (FIFO, severity-priority, GPT-5.1 + memory, Gemini-2.5-flash + memory). Live runs will require a user-supplied API key.</div>
       </div>
     </section>
 

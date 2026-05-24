@@ -1,10 +1,15 @@
 """
 Emergency Room (ER) Discrete-Event Simulation — SimPy
 
-Generated from the structured prompt in Figure 8 of:
-    Dehghanimohammadabadi, Belsare, and Sadeghi (2025).
-    "A Tutorial on Generative AI and Simulation Modeling Integration."
-    Proceedings of the 2025 Winter Simulation Conference.
+Generated via the five-row structured prompt of Section 5.2 in:
+    Dehghani, M., Belsare, S., and Sadeghi, N. (2026).
+    "A Tutorial on GenAI and Simulation Modeling Integration."
+    Proceedings of the 2026 Winter Simulation Conference.
+
+This is the validated Phase 1b artefact handed off to Phase 2
+(Execution) and Phase 3 (Experimentation). The file passed the
+five-check validation gate: process logic, connectivity,
+parallel-vs-sequential, distributions, and theory.
 
 Scenario
 --------
