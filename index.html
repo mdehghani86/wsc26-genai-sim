@@ -222,7 +222,7 @@
         <p class="page-lede">Phase 0 produces no code. It produces a written agreement on three items: the problem to be solved, the scope and boundaries of the system under study, and the key performance indicators (KPIs) the simulation will be judged against. Every later tab consumes this schema unchanged.</p>
         <div class="head-actions">
           <button class="prompt-popover-trigger" data-prompt="problem-brief" type="button" title="Open a customisable copy of the problem-formulation prompt used here.">
-            <span class="ppt-icon">&#10038;</span> Get this prompt
+            <span class="ppt-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 1.6c.86 5.32 3.52 7.98 8.84 8.84-5.32.86-7.98 3.52-8.84 8.84-.86-5.32-3.52-7.98-8.84-8.84C8.48 9.58 11.14 6.92 12 1.6Z"/><path d="M18.9 14.4c.36 1.96 1.38 2.98 3.34 3.34-1.96.36-2.98 1.38-3.34 3.34-.36-1.96-1.38-2.98-3.34-3.34 1.96-.36 2.98-1.38 3.34-3.34Z"/></svg></span> Get this prompt
           </button>
         </div>
       </header>
@@ -268,7 +268,7 @@
         <p class="page-lede">Pick demo arrival data or upload your own CSV. The LLM proposes candidate distributions; scipy runs goodness-of-fit tests in your browser via Pyodide; the test, not the LLM, decides the winner. The output is a copy-pasteable line that drops straight into the Phase 1b SimPy model.</p>
         <div class="head-actions">
           <button class="prompt-popover-trigger" data-prompt="input-modelling" type="button" title="Open a customisable copy of the LLM prompt used here.">
-            <span class="ppt-icon">&#10038;</span> Get this prompt
+            <span class="ppt-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 1.6c.86 5.32 3.52 7.98 8.84 8.84-5.32.86-7.98 3.52-8.84 8.84-.86-5.32-3.52-7.98-8.84-8.84C8.48 9.58 11.14 6.92 12 1.6Z"/><path d="M18.9 14.4c.36 1.96 1.38 2.98 3.34 3.34-1.96.36-2.98 1.38-3.34 3.34-.36-1.96-1.38-2.98-3.34-3.34 1.96-.36 2.98-1.38 3.34-3.34Z"/></svg></span> Get this prompt
           </button>
         </div>
       </header>
@@ -413,7 +413,7 @@
         <p class="page-lede">A five-part structured prompt produces a SimPy file; Pyodide runs it; a five-check validation gate decides whether the artefact may travel forward to Phase 2. Off-the-shelf packages such as Simio or Arena enforce these invariants at draw time on a canvas. Here we enforce them after the fact, automatically, on probabilistic LLM output.</p>
         <div class="head-actions">
           <button class="prompt-popover-trigger" data-prompt="simpy-model" type="button" title="Open a customisable copy of the SimPy-generation prompt (servers, distributions, duration, seed).">
-            <span class="ppt-icon">&#10038;</span> Get this prompt
+            <span class="ppt-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 1.6c.86 5.32 3.52 7.98 8.84 8.84-5.32.86-7.98 3.52-8.84 8.84-.86-5.32-3.52-7.98-8.84-8.84C8.48 9.58 11.14 6.92 12 1.6Z"/><path d="M18.9 14.4c.36 1.96 1.38 2.98 3.34 3.34-1.96.36-2.98 1.38-3.34 3.34-.36-1.96-1.38-2.98-3.34-3.34 1.96-.36 2.98-1.38 3.34-3.34Z"/></svg></span> Get this prompt
           </button>
         </div>
       </header>
@@ -510,7 +510,7 @@ class Patient:
         <p class="page-lede">Run the SimPy ER model produced in Phase 1b. Per-pool utilisation, queue length, and time-in-system update live. Three LLM capabilities — <strong>Entity Characterization</strong>, <strong>Orchestration</strong>, and <strong>Prediction</strong> — layer on top of the same execution loop.</p>
         <div class="head-actions">
           <button class="prompt-popover-trigger" data-prompt="bed-dispatch" type="button" title="Open the exact in-loop bed-assignment prompt the running model fires at each free-bed event.">
-            <span class="ppt-icon">&#10038;</span> Get this prompt
+            <span class="ppt-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 1.6c.86 5.32 3.52 7.98 8.84 8.84-5.32.86-7.98 3.52-8.84 8.84-.86-5.32-3.52-7.98-8.84-8.84C8.48 9.58 11.14 6.92 12 1.6Z"/><path d="M18.9 14.4c.36 1.96 1.38 2.98 3.34 3.34-1.96.36-2.98 1.38-3.34 3.34-.36-1.96-1.38-2.98-3.34-3.34 1.96-.36 2.98-1.38 3.34-3.34Z"/></svg></span> Get this prompt
           </button>
         </div>
       </header>
@@ -581,6 +581,26 @@ class Patient:
         </div>
       </div>
 
+      <div class="simgpt-spotlight">
+        <div class="simgpt-eyebrow">Real-world deployment &middot; Commercial DES</div>
+        <h2 class="simgpt-title">SimGPT &mdash; an LLM step inside a running Simio model</h2>
+        <p class="simgpt-lede">The three capabilities above are demonstrated here in SimPy, but the same in-simulation pattern runs in commercial discrete-event software. <strong>SimGPT</strong> embeds a frontier LLM as a native step inside <a href="https://www.simio.com" target="_blank" rel="noopener">Simio</a>: at a decision point it serialises the live model state, prompts ChatGPT, Gemini, or Claude, parses the structured reply, validates its format, and acts on it &mdash; logging every API call, token count, and latency. Figure&nbsp;4 of the paper shows the architecture.</p>
+        <figure class="simgpt-fig">
+          <img src="simgpt-architecture.png" alt="SimGPT Step development architecture: a C# step compiled into Simio prompts ChatGPT, Gemini, or Claude and parses the response back into simulation state, with feature control, format validation, and analytics logging." />
+          <figcaption>Figure&nbsp;4 &mdash; SimGPT Step development architecture and integration with Simio.</figcaption>
+        </figure>
+        <div class="simgpt-links">
+          <a class="simgpt-link" href="https://doi.org/10.1016/j.cie.2026.112104" target="_blank" rel="noopener">
+            <span class="simgpt-link-k">Paper</span>
+            <span class="simgpt-link-v">Dehghani (2026) &middot; <em>Computers &amp; Industrial Engineering</em> &middot; doi:10.1016/j.cie.2026.112104</span>
+          </a>
+          <a class="simgpt-link" href="https://github.com/TwinAI-inc/Sora" target="_blank" rel="noopener">
+            <span class="simgpt-link-k">Code</span>
+            <span class="simgpt-link-v">github.com/TwinAI-inc/Sora &mdash; the SimGPT step for Simio</span>
+          </a>
+        </div>
+      </div>
+
       <div class="ex-ref">
         <div class="ex-ref-label">Reference</div>
         <div class="ex-ref-body">The full WSC&nbsp;2025 ER demo — sliders, donut charts, M/G/c validation panel, capacity sweep — is preserved at <a href="legacy-2025/index.html" target="_blank" rel="noopener">legacy-2025/</a> for archival comparison.</div>
@@ -595,7 +615,7 @@ class Patient:
         <p class="page-lede">Design the scenario set, sweep parameters, and turn results into something a reader can act on. Three rising-complexity LLM contributions: <strong>Summary Generation</strong> (figure selection plus a short written interpretation), <strong>Scenario Ideation</strong> (factors and levels proposed directly from the Phase 0 brief), and <strong>Optimisation</strong> (LLM-driven parameter search, used only on small designs with cheap evaluations).</p>
         <div class="head-actions">
           <button class="prompt-popover-trigger" data-prompt="scenario-ideation" type="button" title="Open a customisable copy of the scenario-ideation prompt built from the Phase 0 brief.">
-            <span class="ppt-icon">&#10038;</span> Get this prompt
+            <span class="ppt-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 1.6c.86 5.32 3.52 7.98 8.84 8.84-5.32.86-7.98 3.52-8.84 8.84-.86-5.32-3.52-7.98-8.84-8.84C8.48 9.58 11.14 6.92 12 1.6Z"/><path d="M18.9 14.4c.36 1.96 1.38 2.98 3.34 3.34-1.96.36-2.98 1.38-3.34 3.34-.36-1.96-1.38-2.98-3.34-3.34 1.96-.36 2.98-1.38 3.34-3.34Z"/></svg></span> Get this prompt
           </button>
         </div>
       </header>
@@ -613,7 +633,7 @@ class Patient:
         <p class="page-lede">Agentic construction is the third Creation route: instead of emitting a file in one shot (1b), the LLM builds the model step by step, repairing one failing call at a time. The <strong>Model Context Protocol</strong> is the standardized form of that idea. A <code>simpy-mcp</code> server exposes the simulator as a small set of typed tools — the LLM does not write Python and does not see the source. It calls <code>define_resource</code>, <code>define_process</code>, <code>wire</code>, <code>run</code>, and <code>query_kpis</code>, and the server answers. The session below is recorded — but the server is real and runs in your browser via Pyodide, so every reply you see is the actual server output for that call.</p>
         <div class="head-actions">
           <button class="prompt-popover-trigger" data-prompt="mcp-construction" type="button" title="Open the construction prompt that drives the LLM to assemble the model through typed MCP tool calls.">
-            <span class="ppt-icon">&#10038;</span> Get this prompt
+            <span class="ppt-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 1.6c.86 5.32 3.52 7.98 8.84 8.84-5.32.86-7.98 3.52-8.84 8.84-.86-5.32-3.52-7.98-8.84-8.84C8.48 9.58 11.14 6.92 12 1.6Z"/><path d="M18.9 14.4c.36 1.96 1.38 2.98 3.34 3.34-1.96.36-2.98 1.38-3.34 3.34-.36-1.96-1.38-2.98-3.34-3.34 1.96-.36 2.98-1.38 3.34-3.34Z"/></svg></span> Get this prompt
           </button>
         </div>
       </header>

@@ -511,6 +511,56 @@ a:hover { border-bottom-color: var(--ai); }
   color: var(--warm-mid); letter-spacing: 0.04em; text-transform: uppercase;
 }
 
+/* SimGPT spotlight (Execution page) */
+.simgpt-spotlight {
+  margin-top: 22px;
+  padding: 22px 24px;
+  background: linear-gradient(180deg, var(--warm-card-2), var(--warm-card));
+  border: 1px solid var(--warm-line2);
+  border-radius: 10px;
+  box-shadow: var(--shadow-1);
+}
+.simgpt-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ai);
+}
+.simgpt-title {
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 19px; font-weight: 700; color: var(--text);
+  margin: 6px 0 8px;
+}
+.simgpt-lede { font-size: 13.5px; line-height: 1.6; color: var(--text-mut); max-width: 72ch; }
+.simgpt-fig {
+  margin: 16px 0 0;
+  background: #fff;
+  border: 1px solid var(--warm-line2);
+  border-radius: var(--r-sm);
+  padding: 14px 16px 10px;
+}
+.simgpt-fig img { width: 100%; height: auto; display: block; }
+.simgpt-fig figcaption {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px; color: var(--warm-mid);
+  margin-top: 10px; letter-spacing: 0.02em;
+}
+.simgpt-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.simgpt-link {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 9px 14px; flex: 1 1 240px;
+  background: var(--surface);
+  border: 1px solid var(--warm-line2);
+  border-radius: var(--r-sm);
+  transition: border-color 120ms, box-shadow 120ms, transform 120ms;
+}
+.simgpt-link:hover { border-color: var(--ai); box-shadow: var(--shadow-1); transform: translateY(-1px); }
+.simgpt-link-k {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--ai);
+}
+.simgpt-link-v { font-size: 12px; color: var(--text-mut); line-height: 1.35; }
+
 /* =========================================================
    prompt-five: structured prompt rendering (used in Phase 1b)
    ========================================================= */
