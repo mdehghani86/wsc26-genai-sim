@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="css/mcp.css" />
 <link rel="stylesheet" href="css/vibe-coding.css" />
 <link rel="stylesheet" href="css/prompt-popover.css" />
+<link rel="stylesheet" href="css/exec-live.css" />
 
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
@@ -654,7 +655,29 @@ class Patient:
         </div>
       </div>
 
-      <p class="step-note" style="margin-top:18px;">The interactive model runner lives under <a href="#/model-creation">Model creation (1b)</a>, where the validated Phase&nbsp;1b artefact is executed; this page is about the LLM policy that steers it. Use <strong>Get this prompt</strong> above to copy the exact bed-assignment prompt fired at each free-bed event.</p>
+      <p class="step-note" style="margin-top:18px;">The plain model runner lives under <a href="#/model-creation">Model creation (1b)</a>. Here the LLM <em>steers</em> that same model: it makes each bed-assignment live, on top of <code>phase2_decisions/ed_model.py</code>.</p>
+
+      <div class="live-demo" id="orch-demo">
+        <div class="live-demo-head">
+          <span class="live-demo-title">Live &middot; LLM-in-the-loop bed assignment</span>
+          <span class="live-demo-sub">on the real ED model &middot; one LLM call per free-bed event</span>
+        </div>
+        <div id="orch-key"></div>
+        <div class="live-divider"></div>
+        <div class="ex-controls">
+          <label class="ex-ctrl"><span>Seed</span><input type="number" id="orch-seed" value="0" min="0"></label>
+          <label class="ex-ctrl"><span>Patients</span><input type="number" id="orch-n" value="25" min="6" max="60"></label>
+          <label class="ex-ctrl"><span>Inter-arrival (min)</span><input type="number" id="orch-iat" value="12" min="3" step="1"></label>
+          <label class="ex-ctrl"><span>Beds</span><input type="number" id="orch-beds" value="4" min="1" max="8"></label>
+          <button id="orch-run" class="ex-run-btn" type="button">▸ Run comparison</button>
+        </div>
+        <div class="orf-status" id="orch-status">FIFO and Severity run with no key. Add a key to run the LLM policy live on the same seed.</div>
+        <div class="orf-feed-wrap" id="orch-feed-wrap" style="display:none">
+          <div class="orf-feed-label">LLM decision feed</div>
+          <div class="orf-feed" id="orch-feed"></div>
+        </div>
+        <div id="orch-results"></div>
+      </div>
     </section>
 
     <!-- EXECUTION 2c: PREDICTION -->
@@ -678,6 +701,25 @@ class Patient:
           <div class="ex-cap-tag">Status</div>
           <div class="ex-cap-body">Presented as a proposed pattern rather than a benchmarked capability. The repository ships a small log-summarisation utility that demonstrates the forecast on the running ED case.</div>
         </div>
+      </div>
+
+      <div class="live-demo" id="pred-demo">
+        <div class="live-demo-head">
+          <span class="live-demo-title">Live &middot; forecast the next 60 minutes</span>
+          <span class="live-demo-sub">the LLM reads the real event log, then we reveal the actual outcome</span>
+        </div>
+        <div id="pred-key"></div>
+        <div class="live-divider"></div>
+        <div class="ex-controls">
+          <label class="ex-ctrl"><span>Seed</span><input type="number" id="pred-seed" value="3" min="0"></label>
+          <label class="ex-ctrl"><span>Patients</span><input type="number" id="pred-n" value="25" min="6" max="60"></label>
+          <label class="ex-ctrl"><span>Inter-arrival (min)</span><input type="number" id="pred-iat" value="12" min="3" step="1"></label>
+          <label class="ex-ctrl"><span>Beds</span><input type="number" id="pred-beds" value="4" min="1" max="8"></label>
+          <button id="pred-run" class="ex-run-btn" type="button">▸ Run forecast</button>
+        </div>
+        <div class="pred-status" id="pred-status">Runs the real ED model to build an event log. Add a key to have the LLM forecast the next window.</div>
+        <div class="orf-feed-wrap"><div class="pe-label">Recent event log</div><div class="pe-log" id="pred-log"></div></div>
+        <div id="pred-out" style="margin-top:14px"></div>
       </div>
     </section>
 
@@ -835,6 +877,10 @@ class Patient:
 <script src="js/mcp.js" defer></script>
 <script src="js/vibe-coding.js" defer></script>
 <script src="js/prompt-popover.js" defer></script>
+<script src="js/llm-client.js" defer></script>
+<script src="js/ed-runtime.js" defer></script>
+<script src="js/exec-orchestration.js" defer></script>
+<script src="js/exec-prediction.js" defer></script>
 
 </body>
 </html>
