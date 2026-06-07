@@ -92,13 +92,43 @@
           </div>
         </div>
 
-        <a href="#/execution"        class="nav-item nav-stage-item" data-route="execution">
-          <span class="nav-num nav-num-stage">2</span>
-          <span class="nav-stack">
-            <span class="nav-label">Execution</span>
-            <span class="nav-desc">Run the simulation and narrate the trace</span>
-          </span>
-        </a>
+        <div class="nav-stage">
+          <div class="nav-stage-head">
+            <span class="nav-num nav-num-stage">2</span>
+            <span class="nav-stage-name">Execution</span>
+            <span class="nav-stage-tag">4 parts</span>
+          </div>
+          <div class="nav-substages">
+            <a href="#/exec-entity"        class="nav-item nav-sub" data-route="exec-entity">
+              <span class="nav-num">2a</span>
+              <span class="nav-stack">
+                <span class="nav-label">Entity Characterization</span>
+                <span class="nav-desc">Free text to structured attributes</span>
+              </span>
+            </a>
+            <a href="#/exec-orchestration" class="nav-item nav-sub" data-route="exec-orchestration">
+              <span class="nav-num">2b</span>
+              <span class="nav-stack">
+                <span class="nav-label">Orchestration</span>
+                <span class="nav-desc">LLM-in-the-loop decisions</span>
+              </span>
+            </a>
+            <a href="#/exec-prediction"    class="nav-item nav-sub" data-route="exec-prediction">
+              <span class="nav-num">2c</span>
+              <span class="nav-stack">
+                <span class="nav-label">Prediction</span>
+                <span class="nav-desc">Forecast the next event window</span>
+              </span>
+            </a>
+            <a href="#/exec-simgpt"        class="nav-item nav-sub" data-route="exec-simgpt">
+              <span class="nav-num">2d</span>
+              <span class="nav-stack">
+                <span class="nav-label">SimGPT (Simio)</span>
+                <span class="nav-desc">LLM step in commercial DES</span>
+              </span>
+            </a>
+          </div>
+        </div>
         <a href="#/experimentation"  class="nav-item nav-stage-item" data-route="experimentation">
           <span class="nav-num nav-num-stage">3</span>
           <span class="nav-stack">
@@ -185,7 +215,7 @@
           <div class="card-title">Agentic AI via MCP</div>
           <div class="card-body">Stage 1.3 — Agentic Construction. The LLM constructs the simulation by calling typed tools (define_resource, define_process, run, query_kpis) over the Model Context Protocol, instead of emitting a one-shot file.</div>
         </a>
-        <a class="card" href="#/execution">
+        <a class="card" href="#/exec-entity">
           <div class="card-tag">Phase 2</div>
           <div class="card-title">Execution</div>
           <div class="card-body">Run the SimPy model and watch per-pool ρ, Lq, Wq update live with M/G/c theory comparison. Three LLM capabilities layer on top: Entity Characterization, Orchestration (LLM-in-the-loop bed assignment), Prediction.</div>
@@ -256,7 +286,7 @@
 
       <div class="connect-bar">
         <div class="connect-key">This produces</div>
-        <div class="connect-val">A three-row schema. Row 2 (scope) feeds <a href="#/model-creation">Model creation</a>. Row 3 (KPIs) feeds <a href="#/experimentation">Experimentation</a>. Row 1 (problem) anchors the <a href="#/execution">Execution</a> stage.</div>
+        <div class="connect-val">A three-row schema. Row 2 (scope) feeds <a href="#/model-creation">Model creation</a>. Row 3 (KPIs) feeds <a href="#/experimentation">Experimentation</a>. Row 1 (problem) anchors the <a href="#/exec-entity">Execution</a> stage.</div>
       </div>
     </section>
 
@@ -487,9 +517,77 @@ class Patient:
         </div>
       </div>
 
+      <!-- Step 4: run the validated model -->
+      <div class="step">
+        <div class="step-head">
+          <span class="step-num">4</span>
+          <span class="step-title">Run the validated model</span>
+          <span class="step-badge mono">live &middot; Pyodide</span>
+        </div>
+        <div class="step-body">
+          <p class="step-note" style="margin-bottom:14px;">The accepted file runs here in your browser via Pyodide. This is the Phase&nbsp;1b artefact itself &mdash; per-pool utilisation, queue length, and time-in-system, validated live against M/G/c theory. Execution (Phase&nbsp;2) then steers this same model with LLM-in-the-loop policies.</p>
+
+          <div class="ex-run-panel">
+            <div class="ex-controls">
+              <label class="ex-ctrl"><span>Arrival mean (min)</span><input type="number" id="ex-arrival" value="6" min="0.5" step="0.5"></label>
+              <label class="ex-ctrl"><span>Critical beds</span><input type="number" id="ex-critical" value="2" min="1" max="8"></label>
+              <label class="ex-ctrl"><span>Standard beds</span><input type="number" id="ex-standard" value="4" min="1" max="12"></label>
+              <label class="ex-ctrl"><span>Duration (min)</span><input type="number" id="ex-duration" value="5000" min="100" step="500"></label>
+              <label class="ex-ctrl"><span>Replications</span><input type="number" id="ex-reps" value="3" min="1" max="20"></label>
+              <label class="ex-ctrl"><span>Strategy</span>
+                <select id="ex-strategy">
+                  <option value="FIFO">FIFO</option>
+                  <option value="ShortestExpectedTreatment">ShortestExpectedTreatment</option>
+                </select>
+              </label>
+              <label class="ex-ctrl ex-ctrl-check" title="Slow for long runs — every event appends to memory">
+                <span>Event log</span>
+                <span class="ex-toggle">
+                  <input type="checkbox" id="ex-verbose">
+                  <span class="ex-toggle-track"><span class="ex-toggle-dot"></span></span>
+                </span>
+              </label>
+              <button id="ex-run-btn" class="ex-run-btn" type="button">▸ Run simulation</button>
+            </div>
+            <div id="ex-status" class="ex-status">Idle. Click <em>Run simulation</em> to execute the validated Phase&nbsp;1b model in your browser via Pyodide.</div>
+            <div id="ex-progress" class="ex-progress" hidden>
+              <div class="ex-progress-track">
+                <div class="ex-progress-fill" id="ex-progress-fill"></div>
+                <div class="ex-progress-stripes"></div>
+              </div>
+              <div class="ex-progress-label" id="ex-progress-label">0%</div>
+            </div>
+          </div>
+
+          <div class="ex-results" id="ex-results" hidden>
+            <div class="ex-section-label">Key metrics</div>
+            <div class="ex-kpi-grid" id="ex-kpi-grid"></div>
+
+            <div class="ex-section-label">Per-pool comparison vs M/G/c theory</div>
+            <div class="ex-theory-note">
+              <strong>Note on the theory column.</strong> The "Theory" values use the Allen-Cunneen M/G/c approximation. It is exact for M/M/c (Cs² = 1) and known to underestimate Wq by up to 25-30% for low-CV service distributions like the triangular(20,30,45) and triangular(10,15,25) used here (Cs² ≈ 0.026 and 0.035). When the simulation is above the theory by that margin, the simulation is the more accurate value, not a bug.
+            </div>
+            <div class="ex-pool-grid" id="ex-pool-grid"></div>
+
+            <div class="ex-section-label">Distributions</div>
+            <div class="ex-hist-grid" id="ex-hist-grid"></div>
+
+            <div class="ex-log-row">
+              <button type="button" id="ex-log-popout" class="ex-log-btn" disabled>Open full event log in new tab</button>
+              <span class="ex-log-hint">Toggle <strong>Event log</strong> ON in the run controls before running, then open here. Each event appends to memory, so it slows long runs — leave OFF for 50k+ minute runs.</span>
+            </div>
+          </div>
+
+          <div class="ex-ref" style="margin-top:18px;">
+            <div class="ex-ref-label">Reference</div>
+            <div class="ex-ref-body">The full WSC&nbsp;2025 ER demo — sliders, donut charts, M/G/c validation panel, capacity sweep — is preserved at <a href="legacy-2025/index.html" target="_blank" rel="noopener">legacy-2025/</a> for archival comparison.</div>
+          </div>
+        </div>
+      </div>
+
       <div class="connect-bar">
         <div class="connect-key">Hands off to</div>
-        <div class="connect-val">Phase 2 (<a href="#/execution">Execution</a>) consumes this file as the runtime model that the LLM-in-the-loop policies steer. Phase 3 (<a href="#/experimentation">Experimentation</a>) runs scenario sweeps against it and scores them against the Phase 0 KPI list.</div>
+        <div class="connect-val">Phase 2 (<a href="#/exec-orchestration">Execution</a>) consumes this file as the runtime model that the LLM-in-the-loop policies steer. Phase 3 (<a href="#/experimentation">Experimentation</a>) runs scenario sweeps against it and scores them against the Phase 0 KPI list.</div>
       </div>
 
       <!-- alternative path (paper Section 5.3 — Agentic Construction) -->
@@ -502,12 +600,38 @@ class Patient:
       </div>
     </section>
 
-    <!-- EXECUTION -->
-    <section class="page" data-page="execution">
+    <!-- EXECUTION 2a: ENTITY CHARACTERIZATION -->
+    <section class="page" data-page="exec-entity">
       <header class="page-head">
-        <div class="page-eyebrow">Phase 2</div>
-        <h1 class="page-title">Execution</h1>
-        <p class="page-lede">Run the SimPy ER model produced in Phase 1b. Per-pool utilisation, queue length, and time-in-system update live. Three LLM capabilities — <strong>Entity Characterization</strong>, <strong>Orchestration</strong>, and <strong>Prediction</strong> — layer on top of the same execution loop.</p>
+        <div class="page-eyebrow">Phase 2a &middot; Execution</div>
+        <h1 class="page-title">Entity Characterization</h1>
+        <p class="page-lede">Most models initialise each entity with a fixed set of numeric attributes chosen at design time. Real systems carry far more at that same moment, much of it unstructured. The LLM converts that free text into structured attributes the rest of the model can act on, at the point the entity is created.</p>
+      </header>
+
+      <div class="ex-cap-strip">
+        <div class="ex-cap-card ex-cap-sim">
+          <div class="ex-cap-tag">In the ED</div>
+          <div class="ex-cap-body">A patient checks in with a free-text complaint. The LLM summarises it into a triage severity, an estimated complexity, and a flag for whether imaging is likely needed.</div>
+        </div>
+        <div class="ex-cap-card ex-cap-ai">
+          <div class="ex-cap-tag">Delivery &middot; offline lookup</div>
+          <div class="ex-cap-body">Call the LLM once, before the run, to populate a static lookup keyed by entity, then read attributes at each creation event. No in-loop calls; the run stays reproducible with a fixed seed.</div>
+        </div>
+        <div class="ex-cap-card ex-cap-conv">
+          <div class="ex-cap-tag">In the repo</div>
+          <div class="ex-cap-body">The companion repository ships such a lookup for the running ED example, generated from a small set of synthetic patient backstories.</div>
+        </div>
+      </div>
+
+      <p class="step-note" style="margin-top:18px;">The live-call alternative &mdash; invoking the LLM mid-run at every characterization event &mdash; is viable but more expensive; the cost, latency, and reproducibility trade-offs are common to all three Execution capabilities and are discussed in Section 6 of the <a href="paper.pdf" target="_blank" rel="noopener">paper</a>.</p>
+    </section>
+
+    <!-- EXECUTION 2b: ORCHESTRATION -->
+    <section class="page" data-page="exec-orchestration">
+      <header class="page-head">
+        <div class="page-eyebrow">Phase 2b &middot; Execution</div>
+        <h1 class="page-title">Orchestration</h1>
+        <p class="page-lede">The LLM acts as the decision-maker at a recurring choice point during the run. A discrete-event model holds a few such decisions — which server to assign, which order quantity to release, which route to take — each conventionally a deterministic rule of the current state. The LLM replaces the rule with a context-aware policy.</p>
         <div class="head-actions">
           <button class="prompt-popover-trigger" data-prompt="bed-dispatch" type="button" title="Open the exact in-loop bed-assignment prompt the running model fires at each free-bed event.">
             <span class="ppt-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 1.6c.86 5.32 3.52 7.98 8.84 8.84-5.32.86-7.98 3.52-8.84 8.84-.86-5.32-3.52-7.98-8.84-8.84C8.48 9.58 11.14 6.92 12 1.6Z"/><path d="M18.9 14.4c.36 1.96 1.38 2.98 3.34 3.34-1.96.36-2.98 1.38-3.34 3.34-.36-1.96-1.38-2.98-3.34-3.34 1.96-.36 2.98-1.38 3.34-3.34Z"/></svg></span> Get this prompt
@@ -516,94 +640,68 @@ class Patient:
       </header>
 
       <div class="ex-cap-strip">
-        <div class="ex-cap-card ex-cap-sim">
-          <div class="ex-cap-tag">Entity Characterization</div>
-          <div class="ex-cap-body">After the run, the LLM narrates each patient's path through the system — severity, route, wait, and outcome — in plain English suitable for a clinical brief.</div>
-        </div>
         <div class="ex-cap-card ex-cap-ai">
-          <div class="ex-cap-tag">Orchestration</div>
-          <div class="ex-cap-body">The LLM acts as the dispatcher. When a bed frees up, it picks which queued patient gets it, using context the FIFO rule cannot encode.</div>
+          <div class="ex-cap-tag">The decision</div>
+          <div class="ex-cap-body">When a bed frees up and two or more patients wait, the LLM picks which one to admit — using context (severity, wait, expected release, policy so far) that a fixed FIFO rule cannot encode.</div>
+        </div>
+        <div class="ex-cap-card ex-cap-sim">
+          <div class="ex-cap-tag">Three failure modes</div>
+          <div class="ex-cap-body">Per-decision latency of hundreds of milliseconds; non-reproducibility unless temperature and prompts are pinned; and no automatic variance-reduction reasoning.</div>
         </div>
         <div class="ex-cap-card ex-cap-conv">
-          <div class="ex-cap-tag">Prediction</div>
-          <div class="ex-cap-body">The LLM forecasts the next-window arrival burst and treatment duration from the live state, so the simulator can pre-position resources.</div>
+          <div class="ex-cap-tag">Benchmark</div>
+          <div class="ex-cap-body">FIFO and severity-priority versus GPT-5.1 and Gemini-2.5-flash on the same paired seeds. GPT reproduces severity-priority exactly; Gemini deviates on the longest replications where routine patients begin to starve (Table 1 of the paper).</div>
         </div>
       </div>
 
-      <div class="ex-run-panel">
-        <div class="ex-controls">
-          <label class="ex-ctrl"><span>Arrival mean (min)</span><input type="number" id="ex-arrival" value="6" min="0.5" step="0.5"></label>
-          <label class="ex-ctrl"><span>Critical beds</span><input type="number" id="ex-critical" value="2" min="1" max="8"></label>
-          <label class="ex-ctrl"><span>Standard beds</span><input type="number" id="ex-standard" value="4" min="1" max="12"></label>
-          <label class="ex-ctrl"><span>Duration (min)</span><input type="number" id="ex-duration" value="5000" min="100" step="500"></label>
-          <label class="ex-ctrl"><span>Replications</span><input type="number" id="ex-reps" value="3" min="1" max="20"></label>
-          <label class="ex-ctrl"><span>Strategy</span>
-            <select id="ex-strategy">
-              <option value="FIFO">FIFO</option>
-              <option value="ShortestExpectedTreatment">ShortestExpectedTreatment</option>
-            </select>
-          </label>
-          <label class="ex-ctrl ex-ctrl-check" title="Slow for long runs — every event appends to memory">
-            <span>Event log</span>
-            <span class="ex-toggle">
-              <input type="checkbox" id="ex-verbose">
-              <span class="ex-toggle-track"><span class="ex-toggle-dot"></span></span>
-            </span>
-          </label>
-          <button id="ex-run-btn" class="ex-run-btn" type="button">▸ Run simulation</button>
+      <p class="step-note" style="margin-top:18px;">The interactive model runner lives under <a href="#/model-creation">Model creation (1b)</a>, where the validated Phase&nbsp;1b artefact is executed; this page is about the LLM policy that steers it. Use <strong>Get this prompt</strong> above to copy the exact bed-assignment prompt fired at each free-bed event.</p>
+    </section>
+
+    <!-- EXECUTION 2c: PREDICTION -->
+    <section class="page" data-page="exec-prediction">
+      <header class="page-head">
+        <div class="page-eyebrow">Phase 2c &middot; Execution</div>
+        <h1 class="page-title">Prediction</h1>
+        <p class="page-lede">The predictive layer reads the simulation's own history forward in time. Instead of choosing what to do now, the LLM reads the recent event log and forecasts what is about to happen, so downstream decisions can be informed by an expectation rather than current queue state alone.</p>
+      </header>
+
+      <div class="ex-cap-strip">
+        <div class="ex-cap-card ex-cap-sim">
+          <div class="ex-cap-tag">Input</div>
+          <div class="ex-cap-body">The recent <code>(time, entity, event)</code> log together with the Phase&nbsp;0 brief.</div>
         </div>
-        <div id="ex-status" class="ex-status">Idle. Click <em>Run simulation</em> to execute the Phase&nbsp;1b model in your browser via Pyodide.</div>
-        <div id="ex-progress" class="ex-progress" hidden>
-          <div class="ex-progress-track">
-            <div class="ex-progress-fill" id="ex-progress-fill"></div>
-            <div class="ex-progress-stripes"></div>
-          </div>
-          <div class="ex-progress-label" id="ex-progress-label">0%</div>
+        <div class="ex-cap-card ex-cap-ai">
+          <div class="ex-cap-tag">Output</div>
+          <div class="ex-cap-body">A structured forecast: expected severity-1 arrivals in the next hour, the probability the ED census breaches a threshold, or an estimated completion time for an order already in process.</div>
+        </div>
+        <div class="ex-cap-card ex-cap-conv">
+          <div class="ex-cap-tag">Status</div>
+          <div class="ex-cap-body">Presented as a proposed pattern rather than a benchmarked capability. The repository ships a small log-summarisation utility that demonstrates the forecast on the running ED case.</div>
         </div>
       </div>
+    </section>
 
-      <div class="ex-results" id="ex-results" hidden>
-        <div class="ex-section-label">Key metrics</div>
-        <div class="ex-kpi-grid" id="ex-kpi-grid"></div>
+    <!-- EXECUTION 2d: SIMGPT -->
+    <section class="page" data-page="exec-simgpt">
+      <header class="page-head">
+        <div class="page-eyebrow">Phase 2d &middot; Execution &middot; Real-world deployment</div>
+        <h1 class="page-title">SimGPT &mdash; an LLM step inside a running Simio model</h1>
+        <p class="page-lede">The three capabilities above are demonstrated here in SimPy, but the same in-simulation pattern runs in commercial discrete-event software. <strong>SimGPT</strong> embeds a frontier LLM as a native step inside <a href="https://www.simio.com" target="_blank" rel="noopener">Simio</a>: at a decision point it serialises the live model state, prompts ChatGPT, Gemini, or Claude, parses the structured reply, validates its format, and acts on it &mdash; logging every API call, token count, and latency. Figure&nbsp;4 of the paper shows the architecture.</p>
+      </header>
 
-        <div class="ex-section-label">Per-pool comparison vs M/G/c theory</div>
-        <div class="ex-theory-note">
-          <strong>Note on the theory column.</strong> The "Theory" values use the Allen-Cunneen M/G/c approximation. It is exact for M/M/c (Cs² = 1) and known to underestimate Wq by up to 25-30% for low-CV service distributions like the triangular(20,30,45) and triangular(10,15,25) used here (Cs² ≈ 0.026 and 0.035). When the simulation is above the theory by that margin, the simulation is the more accurate value, not a bug.
-        </div>
-        <div class="ex-pool-grid" id="ex-pool-grid"></div>
-
-        <div class="ex-section-label">Distributions</div>
-        <div class="ex-hist-grid" id="ex-hist-grid"></div>
-
-        <div class="ex-log-row">
-          <button type="button" id="ex-log-popout" class="ex-log-btn" disabled>Open full event log in new tab</button>
-          <span class="ex-log-hint">Toggle <strong>Event log</strong> ON in the run controls before running, then open here. Each event appends to memory, so it slows long runs — leave OFF for 50k+ minute runs.</span>
-        </div>
-      </div>
-
-      <div class="simgpt-spotlight">
-        <div class="simgpt-eyebrow">Real-world deployment &middot; Commercial DES</div>
-        <h2 class="simgpt-title">SimGPT &mdash; an LLM step inside a running Simio model</h2>
-        <p class="simgpt-lede">The three capabilities above are demonstrated here in SimPy, but the same in-simulation pattern runs in commercial discrete-event software. <strong>SimGPT</strong> embeds a frontier LLM as a native step inside <a href="https://www.simio.com" target="_blank" rel="noopener">Simio</a>: at a decision point it serialises the live model state, prompts ChatGPT, Gemini, or Claude, parses the structured reply, validates its format, and acts on it &mdash; logging every API call, token count, and latency. Figure&nbsp;4 of the paper shows the architecture.</p>
-        <figure class="simgpt-fig">
-          <img src="simgpt-architecture.png" alt="SimGPT Step development architecture: a C# step compiled into Simio prompts ChatGPT, Gemini, or Claude and parses the response back into simulation state, with feature control, format validation, and analytics logging." />
-          <figcaption>Figure&nbsp;4 &mdash; SimGPT Step development architecture and integration with Simio.</figcaption>
-        </figure>
-        <div class="simgpt-links">
-          <a class="simgpt-link" href="https://doi.org/10.1016/j.cie.2026.112104" target="_blank" rel="noopener">
-            <span class="simgpt-link-k">Paper</span>
-            <span class="simgpt-link-v">Dehghani (2026) &middot; <em>Computers &amp; Industrial Engineering</em> &middot; doi:10.1016/j.cie.2026.112104</span>
-          </a>
-          <a class="simgpt-link" href="https://github.com/TwinAI-inc/Sora" target="_blank" rel="noopener">
-            <span class="simgpt-link-k">Code</span>
-            <span class="simgpt-link-v">github.com/TwinAI-inc/Sora &mdash; the SimGPT step for Simio</span>
-          </a>
-        </div>
-      </div>
-
-      <div class="ex-ref">
-        <div class="ex-ref-label">Reference</div>
-        <div class="ex-ref-body">The full WSC&nbsp;2025 ER demo — sliders, donut charts, M/G/c validation panel, capacity sweep — is preserved at <a href="legacy-2025/index.html" target="_blank" rel="noopener">legacy-2025/</a> for archival comparison.</div>
+      <figure class="simgpt-fig">
+        <img src="simgpt-architecture.png" alt="SimGPT Step development architecture: a C# step compiled into Simio prompts ChatGPT, Gemini, or Claude and parses the response back into simulation state, with feature control, format validation, and analytics logging." />
+        <figcaption>Figure&nbsp;4 &mdash; SimGPT Step development architecture and integration with Simio.</figcaption>
+      </figure>
+      <div class="simgpt-links">
+        <a class="simgpt-link" href="https://doi.org/10.1016/j.cie.2026.112104" target="_blank" rel="noopener">
+          <span class="simgpt-link-k"><svg class="simgpt-ic" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M9.5 0H4a1.5 1.5 0 0 0-1.5 1.5v13A1.5 1.5 0 0 0 4 16h8a1.5 1.5 0 0 0 1.5-1.5V4.5L9.5 0zM9 5V1.2L12.8 5H9z"/><path d="M4.6 9.2h1c.7 0 1.2.4 1.2 1.05s-.5 1.07-1.2 1.07h-.4v1.08h-.6V9.2zm.6.52v1.08h.35c.36 0 .6-.2.6-.54 0-.34-.24-.54-.6-.54h-.35zM7.5 9.2h1c.9 0 1.45.62 1.45 1.52S9.4 12.48 8.5 12.48h-1V9.2zm.6.52v2.24h.35c.55 0 .87-.42.87-1.12s-.32-1.12-.87-1.12H8.1zM10.6 9.2h1.85v.52H11.2v.86h1.1v.5h-1.1v1.4h-.6V9.2z"/></svg>Paper</span>
+          <span class="simgpt-link-v">Dehghani (2026) &middot; <em>Computers &amp; Industrial Engineering</em> &middot; doi:10.1016/j.cie.2026.112104</span>
+        </a>
+        <a class="simgpt-link" href="https://github.com/TwinAI-inc/Sora" target="_blank" rel="noopener">
+          <span class="simgpt-link-k"><svg class="simgpt-ic" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>Code</span>
+          <span class="simgpt-link-v">github.com/TwinAI-inc/Sora &mdash; the SimGPT step for Simio</span>
+        </a>
       </div>
     </section>
 

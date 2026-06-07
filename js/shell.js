@@ -6,8 +6,9 @@
   'use strict';
 
   const ROUTES = [
-    'home', 'phase0', 'input-modelling', 'model-creation',
-    'execution', 'experimentation', 'mcp', 'comparison', 'about'
+    'home', 'phase0', 'input-modelling', 'model-creation', 'mcp',
+    'exec-entity', 'exec-orchestration', 'exec-prediction', 'exec-simgpt',
+    'experimentation', 'comparison', 'about'
   ];
 
   function readRoute() {
