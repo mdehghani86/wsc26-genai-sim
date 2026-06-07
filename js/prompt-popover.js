@@ -134,6 +134,159 @@ m || '  - per-patient timestamps, per-pool rho/Lq/Wq, event log',
 `Return ONLY the Python file. No commentary, no markdown fences.`
 ].join('\n');
       }
+    },
+
+    'problem-brief': {
+      eyebrow: 'Phase 0',
+      title: 'Problem-formulation prompt',
+      footer: 'Paste this into your LLM. The response is forced into a fixed three-row schema (problem, scope, KPIs) so outputs stay comparable across projects and models. Review every cell before building against it.',
+      fields: [
+        { section: 'Study' },
+        { type: 'textarea', key: 'facility', label: 'Facility & context',
+          hint: 'One or two sentences on the real system.',
+          defaultValue: 'A small community-hospital emergency department with two triage tiers (urgent, non-urgent). The team wants to evaluate staffing and routing-rule changes under fluctuating arrival rates.' },
+        { type: 'textarea', key: 'question', label: 'Study question',
+          hint: 'What decision the simulation must inform.',
+          defaultValue: 'Whether triage-rule changes or staffing changes deliver the larger reduction in length of stay.' },
+        { section: 'KPI grounding' },
+        { type: 'text', key: 'years', label: 'Literature window', defaultValue: '2023-2025' },
+        { type: 'checks', key: 'searchopts', columns: 1, options: [
+            { value: 'Search recent peer-reviewed simulation studies and adopt community-standard KPIs', defaultChecked: true }
+        ] }
+      ],
+      render: (v) => {
+        const search = (v.searchopts && v.searchopts.length)
+          ? `Search recent literature (${v.years}) on emergency-department simulation studies and pull the KPIs the community reports most often.`
+          : `Use standard discrete-event simulation KPIs for this kind of system.`;
+        return [
+`I am planning a discrete-event simulation study. Help me formulate it as a structured problem statement.`,
+``,
+`[Context]`,
+`${v.facility}`,
+``,
+`[Study question]`,
+`${v.question}`,
+``,
+`[Grounding]`,
+`${search}`,
+``,
+`[Return] a single table with exactly three rows:`,
+`  1. Problem definition  -- the decision the simulation must inform.`,
+`  2. Scope & boundaries  -- what is in and explicitly out of the model.`,
+`  3. KPIs                -- the measures the study will be judged against.`,
+`Keep each cell to two or three short sentences. Flag any row you cannot fill confidently.`
+].join('\n');
+      }
+    },
+
+    'bed-dispatch': {
+      eyebrow: 'Phase 2 · Orchestration',
+      title: 'In-loop bed-assignment prompt',
+      footer: 'This is the exact prompt the running model fires at each free-bed event (see phase2_decisions/llm_policy.py). The LLM answers with ONE integer; that integer IS the admission decision. Temperature is pinned to 0 for reproducibility.',
+      fields: [
+        { section: 'Severity scale' },
+        { type: 'text', key: 'scale', label: 'Severity coding',
+          hint: 'Lower number = more urgent.',
+          defaultValue: '1 = urgent, 2 = moderate, 3 = routine' },
+        { section: 'Live state (example)' },
+        { type: 'textarea', key: 'state', label: 'Current state block',
+          hint: 'What _state_to_text() injects at run time.',
+          defaultValue:
+'bed 0: BUSY -> sev1 pt, ~22 min until free\nbed 1: BUSY -> sev3 pt, ~8 min until free\nQueue (3 waiting): [0] sev2, waited 14 min  [1] sev1, waited 3 min  [2] sev3, waited 31 min' },
+        { type: 'text', key: 'policy', label: 'Policy-so-far summary',
+          hint: 'One-line rolling memory of past decisions.',
+          defaultValue: 'Admitting the most urgent waiting patient, breaking ties by longest wait.' }
+      ],
+      render: (v) => {
+        const qmax = 2;
+        return [
+`[System]`,
+`You are an emergency-department triage dispatcher.`,
+`A bed has just freed up. The waiting queue holds 2 or more patients.`,
+`Your job: choose ONE patient from the queue to admit next.`,
+`Severity scale: ${v.scale}. Lower number is more urgent.`,
+`Trade-off: prioritising severity reduces urgent-patient wait but may starve routine patients.`,
+`You will see the queue, the current ED state, your last few decisions, and a one-line`,
+`summary of your policy so far. Decide consistently.`,
+`Reply with ONE integer: the index in the queue (0 = first in line, 1 = second, ...).`,
+`Reply with the integer only -- no words, no punctuation, no explanation.`,
+``,
+`[User]`,
+`Recent decisions (memory): ...`,
+``,
+`Policy so far: ${v.policy}`,
+``,
+`Current state:`,
+`${v.state}`,
+``,
+`Choose the queue index of the patient to admit next (integer in 0..${qmax}):`
+].join('\n');
+      }
+    },
+
+    'scenario-ideation': {
+      eyebrow: 'Phase 3 · Experimentation',
+      title: 'Scenario-ideation prompt',
+      footer: 'The LLM proposes a starting design from the Phase 0 brief; you accept or trim the factors and levels, and the rest of the experiment runs mechanically. The LLM designs the sweep -- it does not run it.',
+      fields: [
+        { section: 'From the brief' },
+        { type: 'textarea', key: 'kpis', label: 'KPIs (the comparison target)',
+          defaultValue: 'Mean and 95th-percentile length of stay; bed utilisation; daily throughput.' },
+        { type: 'textarea', key: 'factors', label: 'Movable factors (the scope row)',
+          defaultValue: 'Bed count; triage staffing level; hour-of-day arrival pattern.' },
+        { section: 'Design' },
+        { type: 'number', key: 'reps', label: 'Replications per cell', defaultValue: 20 }
+      ],
+      render: (v) => [
+`I am designing the experiment for a discrete-event simulation study.`,
+`Propose a scenario set I can run, drawn directly from the brief below.`,
+``,
+`[KPIs -- what the comparison must measure]`,
+`${v.kpis}`,
+``,
+`[Movable factors -- what I can change]`,
+`${v.factors}`,
+``,
+`[Return]`,
+`  1. A small full- or fractional-factorial design over the movable factors,`,
+`     with explicit levels for each (no more than is needed to answer the KPIs).`,
+`  2. ${v.reps} replications per cell, or justify a different number for the precision the KPIs demand.`,
+`  3. A one-line rationale per factor tying it back to a KPI.`,
+`Do not run anything. Output only the design table and rationale so I can review before execution.`
+].join('\n')
+    },
+
+    'mcp-construction': {
+      eyebrow: 'Stage 1.3 · Agentic construction',
+      title: 'MCP tool-construction prompt',
+      footer: 'The LLM never writes Python and never sees the source. It assembles the model by emitting typed calls to the simpy-mcp server (define_resource, define_process, wire, run, query_kpis); a typed error on any single step is fed back so the model repairs that step alone.',
+      fields: [
+        { section: 'Target model' },
+        { type: 'textarea', key: 'model', label: 'System to assemble',
+          defaultValue: 'An emergency department: triage, imaging, laboratory, and bed pools; walk-in arrivals; admit-or-discharge flow.' },
+        { type: 'text', key: 'goal', label: 'KPI to report', defaultValue: 'per-pool utilisation, Lq, and Wq' }
+      ],
+      render: (v) => [
+`You are constructing a discrete-event simulation by calling tools on a simulation MCP server.`,
+`You do NOT write Python and you do NOT see the source. You build the model one typed call at a time.`,
+``,
+`[Available tools]`,
+`  - define_resource(name, capacity)      -- declare a server pool`,
+`  - define_process(name, steps)          -- declare an entity flow`,
+`  - wire(producer, consumer)             -- connect one step to the next`,
+`  - run(duration, seed, replications)    -- execute the assembled model`,
+`  - query_kpis(metric)                   -- read results back`,
+``,
+`[Model to assemble]`,
+`${v.model}`,
+``,
+`[Procedure]`,
+`  1. Emit tool calls one at a time; wait for each server reply before the next.`,
+`  2. If a call returns a typed error, repair only that step and retry -- do not restart.`,
+`  3. After wiring, run the model, then query ${v.goal}.`,
+`  4. If a theory check disagrees on utilisation, query the parameter at fault and fix that call alone.`,
+`Report the final KPIs and the sequence of calls you made.`
+].join('\n')
     }
   };
 

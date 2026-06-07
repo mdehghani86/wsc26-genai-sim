@@ -136,6 +136,79 @@ a:hover { border-bottom-color: var(--ai); }
 }
 .nav-item.active .nav-desc { color: var(--text-mut); }
 
+/* --- 5-stage workflow nav --- */
+.nav-section-lead {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid var(--warm-line2);
+  margin-bottom: 6px;
+}
+.nav-section-title {
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 12px; font-weight: 700; color: var(--text);
+  text-transform: none; letter-spacing: 0.01em;
+}
+.nav-section-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 700; color: var(--warm-mid);
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.nav-intro { margin-bottom: 8px; }
+.nav-intro .nav-num { background: transparent; border-style: dashed; }
+
+/* timeline rail down the stage column */
+.nav-rail { position: relative; }
+.nav-rail::before {
+  content: ""; position: absolute;
+  left: 22px; top: 14px; bottom: 14px;
+  width: 1.5px; background: var(--warm-line2);
+  z-index: 0;
+}
+.nav-rail .nav-item, .nav-rail .nav-stage { position: relative; z-index: 1; }
+
+/* stage number badge sits on the rail */
+.nav-num-stage {
+  background: var(--surface);
+  border-color: var(--warm-line2);
+  color: var(--text-mut);
+  box-shadow: 0 0 0 3px var(--warm-card);
+}
+.nav-stage-item.active .nav-num-stage {
+  background: var(--ai); color: #fff; border-color: var(--ai);
+}
+
+/* Creation group: header + bracketed sub-stages */
+.nav-stage { margin: 2px 0 4px; }
+.nav-stage-head {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 10px 4px;
+}
+.nav-stage-head .nav-num-stage {
+  box-shadow: 0 0 0 3px var(--warm-card);
+}
+.nav-stage-name {
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 13.5px; font-weight: 700; color: var(--text);
+}
+.nav-stage-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8.5px; font-weight: 700; color: var(--warm-mid);
+  background: var(--warm-card-2); border: 1px solid var(--warm-line2);
+  border-radius: 999px; padding: 1px 6px;
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.nav-substages {
+  margin-left: 33px;
+  padding-left: 12px;
+  border-left: 1.5px solid var(--warm-line2);
+}
+.nav-sub { padding: 6px 10px; }
+.nav-sub .nav-num {
+  min-width: 24px; height: 18px; font-size: 9.5px;
+}
+.nav-sub .nav-label { font-size: 13px; }
+.nav-sub.active { box-shadow: inset 2px 0 0 var(--ai); }
+
 .sidebar-foot {
   border-top: 1px solid var(--warm-line2);
   padding: 12px 8px 4px;
@@ -419,6 +492,24 @@ a:hover { border-bottom-color: var(--ai); }
 .about-key { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--warm-mid); text-transform: uppercase; letter-spacing: 0.06em; padding-top: 3px; }
 .about-val { font-size: 14px; color: var(--text); }
 .about-block { display: contents; }
+
+/* repository QR code */
+.repo-qr { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.repo-qr-box {
+  display: inline-flex; padding: 8px;
+  background: #fff;
+  border: 1px solid var(--warm-line2);
+  border-radius: var(--r-sm);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: box-shadow 140ms, transform 140ms;
+}
+.repo-qr-box:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.10); transform: translateY(-1px); }
+.repo-qr-box img { display: block; }
+.repo-qr-cap {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 700; line-height: 1.5;
+  color: var(--warm-mid); letter-spacing: 0.04em; text-transform: uppercase;
+}
 
 /* =========================================================
    prompt-five: structured prompt rendering (used in Phase 1b)

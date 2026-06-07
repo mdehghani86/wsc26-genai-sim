@@ -39,64 +39,81 @@
     </div>
 
     <nav class="nav">
-      <div class="nav-section">Phases</div>
-      <a href="#/home"             class="nav-item" data-route="home">
+      <div class="nav-section nav-section-lead">
+        <span class="nav-section-title">The workflow</span>
+        <span class="nav-section-meta">5 stages</span>
+      </div>
+
+      <a href="#/home"             class="nav-item nav-intro" data-route="home">
         <span class="nav-num">00</span>
         <span class="nav-stack">
           <span class="nav-label">Overview</span>
           <span class="nav-desc">The five-stage workflow at a glance</span>
         </span>
       </a>
-      <a href="#/phase0"           class="nav-item" data-route="phase0">
-        <span class="nav-num">0</span>
-        <span class="nav-stack">
-          <span class="nav-label">Problem formulation</span>
-          <span class="nav-desc">Define the problem, scope, and KPIs</span>
-        </span>
-      </a>
-      <a href="#/input-modelling"  class="nav-item" data-route="input-modelling">
-        <span class="nav-num">1a</span>
-        <span class="nav-stack">
-          <span class="nav-label">Input modelling</span>
-          <span class="nav-desc">Fit a distribution to arrival data</span>
-        </span>
-      </a>
-      <a href="#/model-creation"   class="nav-item" data-route="model-creation">
-        <span class="nav-num">1b</span>
-        <span class="nav-stack">
-          <span class="nav-label">Model creation</span>
-          <span class="nav-desc">Generate a runnable SimPy model</span>
-        </span>
-      </a>
-      <a href="#/execution"        class="nav-item" data-route="execution">
-        <span class="nav-num">2</span>
-        <span class="nav-stack">
-          <span class="nav-label">Execution</span>
-          <span class="nav-desc">Run the simulation and narrate the trace</span>
-        </span>
-      </a>
-      <a href="#/experimentation"  class="nav-item" data-route="experimentation">
-        <span class="nav-num">3</span>
-        <span class="nav-stack">
-          <span class="nav-label">Experimentation</span>
-          <span class="nav-desc">Sweep scenarios and score against KPIs</span>
-        </span>
-      </a>
 
-      <a href="#/mcp"              class="nav-item" data-route="mcp">
-        <span class="nav-num">1c</span>
-        <span class="nav-stack">
-          <span class="nav-label">Agentic AI (MCP)</span>
-          <span class="nav-desc">Stage 1.3 — LLM builds via typed tools</span>
-        </span>
-      </a>
-      <a href="#/comparison"       class="nav-item" data-route="comparison">
-        <span class="nav-num">4</span>
-        <span class="nav-stack">
-          <span class="nav-label">Evaluation</span>
-          <span class="nav-desc">Reproducibility, validation, benchmarking</span>
-        </span>
-      </a>
+      <div class="nav-rail">
+        <a href="#/phase0"           class="nav-item nav-stage-item" data-route="phase0">
+          <span class="nav-num nav-num-stage">0</span>
+          <span class="nav-stack">
+            <span class="nav-label">Problem formulation</span>
+            <span class="nav-desc">Define the problem, scope, and KPIs</span>
+          </span>
+        </a>
+
+        <div class="nav-stage">
+          <div class="nav-stage-head">
+            <span class="nav-num nav-num-stage">1</span>
+            <span class="nav-stage-name">Creation</span>
+            <span class="nav-stage-tag">3 routes</span>
+          </div>
+          <div class="nav-substages">
+            <a href="#/input-modelling"  class="nav-item nav-sub" data-route="input-modelling">
+              <span class="nav-num">1a</span>
+              <span class="nav-stack">
+                <span class="nav-label">Input modelling</span>
+                <span class="nav-desc">Fit a distribution to arrival data</span>
+              </span>
+            </a>
+            <a href="#/model-creation"   class="nav-item nav-sub" data-route="model-creation">
+              <span class="nav-num">1b</span>
+              <span class="nav-stack">
+                <span class="nav-label">Model creation</span>
+                <span class="nav-desc">Generate a runnable SimPy model</span>
+              </span>
+            </a>
+            <a href="#/mcp"              class="nav-item nav-sub" data-route="mcp">
+              <span class="nav-num">1c</span>
+              <span class="nav-stack">
+                <span class="nav-label">Agentic AI &middot; MCP</span>
+                <span class="nav-desc">LLM builds via typed tools</span>
+              </span>
+            </a>
+          </div>
+        </div>
+
+        <a href="#/execution"        class="nav-item nav-stage-item" data-route="execution">
+          <span class="nav-num nav-num-stage">2</span>
+          <span class="nav-stack">
+            <span class="nav-label">Execution</span>
+            <span class="nav-desc">Run the simulation and narrate the trace</span>
+          </span>
+        </a>
+        <a href="#/experimentation"  class="nav-item nav-stage-item" data-route="experimentation">
+          <span class="nav-num nav-num-stage">3</span>
+          <span class="nav-stack">
+            <span class="nav-label">Experimentation</span>
+            <span class="nav-desc">Sweep scenarios and score against KPIs</span>
+          </span>
+        </a>
+        <a href="#/comparison"       class="nav-item nav-stage-item" data-route="comparison">
+          <span class="nav-num nav-num-stage">4</span>
+          <span class="nav-stack">
+            <span class="nav-label">Evaluation</span>
+            <span class="nav-desc">Reproducibility, validation, benchmarking</span>
+          </span>
+        </a>
+      </div>
 
       <div class="nav-section">Project</div>
       <a href="#/about"            class="nav-item" data-route="about">
@@ -203,6 +220,11 @@
         <div class="page-eyebrow">Phase 0</div>
         <h1 class="page-title">Problem formulation</h1>
         <p class="page-lede">Phase 0 produces no code. It produces a written agreement on three items: the problem to be solved, the scope and boundaries of the system under study, and the key performance indicators (KPIs) the simulation will be judged against. Every later tab consumes this schema unchanged.</p>
+        <div class="head-actions">
+          <button class="prompt-popover-trigger" data-prompt="problem-brief" type="button" title="Open a customisable copy of the problem-formulation prompt used here.">
+            <span class="ppt-icon">&#10038;</span> Get this prompt
+          </button>
+        </div>
       </header>
 
       <div class="phase0-frame">
@@ -486,6 +508,11 @@ class Patient:
         <div class="page-eyebrow">Phase 2</div>
         <h1 class="page-title">Execution</h1>
         <p class="page-lede">Run the SimPy ER model produced in Phase 1b. Per-pool utilisation, queue length, and time-in-system update live. Three LLM capabilities — <strong>Entity Characterization</strong>, <strong>Orchestration</strong>, and <strong>Prediction</strong> — layer on top of the same execution loop.</p>
+        <div class="head-actions">
+          <button class="prompt-popover-trigger" data-prompt="bed-dispatch" type="button" title="Open the exact in-loop bed-assignment prompt the running model fires at each free-bed event.">
+            <span class="ppt-icon">&#10038;</span> Get this prompt
+          </button>
+        </div>
       </header>
 
       <div class="ex-cap-strip">
@@ -566,6 +593,11 @@ class Patient:
         <div class="page-eyebrow">Phase 3 &middot; Section 7 of the paper</div>
         <h1 class="page-title">Experimentation</h1>
         <p class="page-lede">Design the scenario set, sweep parameters, and turn results into something a reader can act on. Three rising-complexity LLM contributions: <strong>Summary Generation</strong> (figure selection plus a short written interpretation), <strong>Scenario Ideation</strong> (factors and levels proposed directly from the Phase 0 brief), and <strong>Optimisation</strong> (LLM-driven parameter search, used only on small designs with cheap evaluations).</p>
+        <div class="head-actions">
+          <button class="prompt-popover-trigger" data-prompt="scenario-ideation" type="button" title="Open a customisable copy of the scenario-ideation prompt built from the Phase 0 brief.">
+            <span class="ppt-icon">&#10038;</span> Get this prompt
+          </button>
+        </div>
       </header>
       <div class="placeholder">
         <div class="placeholder-title">In-browser demo coming next</div>
@@ -578,7 +610,12 @@ class Patient:
       <header class="page-head">
         <div class="page-eyebrow">Stage 1.3 &middot; Agentic construction (Section 5.3)</div>
         <h1 class="page-title">Agentic AI via Model Context Protocol</h1>
-        <p class="page-lede">A <code>simpy-mcp</code> server exposes the simulator as a small set of typed tools. The LLM does not write Python and does not see the source. It calls <code>define_resource</code>, <code>define_process</code>, <code>wire</code>, <code>run</code>, and <code>query_kpis</code>, and the server answers. The session below is recorded — but the server is real and runs in your browser via Pyodide, so every reply you see is the actual server output for that call.</p>
+        <p class="page-lede">Agentic construction is the third Creation route: instead of emitting a file in one shot (1b), the LLM builds the model step by step, repairing one failing call at a time. The <strong>Model Context Protocol</strong> is the standardized form of that idea. A <code>simpy-mcp</code> server exposes the simulator as a small set of typed tools — the LLM does not write Python and does not see the source. It calls <code>define_resource</code>, <code>define_process</code>, <code>wire</code>, <code>run</code>, and <code>query_kpis</code>, and the server answers. The session below is recorded — but the server is real and runs in your browser via Pyodide, so every reply you see is the actual server output for that call.</p>
+        <div class="head-actions">
+          <button class="prompt-popover-trigger" data-prompt="mcp-construction" type="button" title="Open the construction prompt that drives the LLM to assemble the model through typed MCP tool calls.">
+            <span class="ppt-icon">&#10038;</span> Get this prompt
+          </button>
+        </div>
       </header>
 
       <div class="mcp-grid">
@@ -647,9 +684,17 @@ class Patient:
           <div class="about-key">Citation</div>
           <div class="about-val">Dehghani, M., Belsare, S., and Sadeghi, N. (2026). <em>A Tutorial on GenAI and Simulation Modeling Integration</em>. Proceedings of the Winter Simulation Conference.</div>
         </div>
-        <div class="about-block">
+        <div class="about-block about-repo">
           <div class="about-key">Repository</div>
-          <div class="about-val"><a href="https://github.com/mdehghani86/wsc26-genai-sim" target="_blank" rel="noopener">github.com/mdehghani86/wsc26-genai-sim</a></div>
+          <div class="about-val">
+            <a href="https://github.com/mdehghani86/wsc26-genai-sim" target="_blank" rel="noopener">github.com/mdehghani86/wsc26-genai-sim</a>
+            <div class="repo-qr">
+              <a class="repo-qr-box" href="https://github.com/mdehghani86/wsc26-genai-sim" target="_blank" rel="noopener" aria-label="Open the companion repository on GitHub">
+                <img src="qr-repo.svg" alt="QR code linking to the companion repository" width="104" height="104" />
+              </a>
+              <span class="repo-qr-cap">Scan to open<br />the repo</span>
+            </div>
+          </div>
         </div>
         <div class="about-block">
           <div class="about-key">Runtime</div>
