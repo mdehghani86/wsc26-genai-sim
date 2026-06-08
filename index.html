@@ -881,9 +881,22 @@ class Patient:
         <h1 class="page-title">Evaluation</h1>
         <p class="page-lede">Close the loop with three rising-complexity LLM contributions: <strong>Reproducibility</strong> (every figure, prompt, and result regenerable from this repo, exercisable in your browser), <strong>Validation</strong> (KPIs cross-checked against closed-form M/G/c bounds and a commercial Arena or Simio reference), and <strong>Benchmarking</strong> (the same harness run against multiple frontier LLMs on paired seeds — the bed-assignment policy table from Section 6.2 is the worked instance).</p>
       </header>
-      <div class="placeholder">
-        <div class="placeholder-title">Live benchmark coming next</div>
-        <div class="placeholder-body">A single results table embedded here, mirroring Table 1 of the paper (FIFO, severity-priority, GPT-5.1 + memory, Gemini-2.5-flash + memory). Live runs will require a user-supplied API key.</div>
+      <div class="live-demo" id="eval-demo">
+        <div class="live-demo-head">
+          <span class="live-demo-title">Benchmark &middot; bed-assignment policies</span>
+          <span class="live-demo-sub">Table 1 of the paper &middot; 8 paired seeds &middot; recorded, no key needed</span>
+        </div>
+        <div class="orf-status" id="eval-status"><span class="spinner sm"></span> loading the recorded benchmark…</div>
+        <div id="eval-table"></div>
+        <div id="eval-note"></div>
+      </div>
+
+      <div class="method-refs">
+        <span class="mr-label">Methods &amp; sources</span>
+        <ul>
+          <li><a href="https://doi.org/10.1016/j.cie.2026.112104" target="_blank" rel="noopener">Dehghani (2026)</a> &mdash; SimGPT: the cross-model scorecard pattern for benchmarking LLM policies.</li>
+          <li><a href="https://arxiv.org/abs/2505.13761" target="_blank" rel="noopener">Kleiman et al. (2025)</a> &mdash; comparing LLM-driven decisions against heuristic baselines in simulation.</li>
+        </ul>
       </div>
     </section>
 
@@ -935,6 +948,7 @@ class Patient:
 <script src="js/ed-runtime.js" defer></script>
 <script src="js/exec-orchestration.js" defer></script>
 <script src="js/exec-prediction.js" defer></script>
+<script src="js/evaluation.js" defer></script>
 
 </body>
 </html>
