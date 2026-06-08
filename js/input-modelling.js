@@ -85,22 +85,32 @@ Do NOT run a goodness-of-fit test; that will be done in scipy and the test wins.
 
   // ---------- data loaders ----------
   async function loadDemo(name, card) {
-    $$('.data-card').forEach(c => c.classList.remove('is-selected'));
-    card.classList.add('is-selected');
+    $$('.data-card').forEach(c => c.classList.remove('is-selected', 'is-loading'));
+    card.classList.add('is-selected', 'is-loading');
     const path = name === 'clean' ? 'data/arrivals_clean.csv' : 'data/arrivals_bursty.csv';
     state.source = `demo:${name}`;
     state.label  = DEMO_RESPONSES[state.source].label;
-    const text = await fetch(path).then(r => r.text());
-    consume(text);
+    try {
+      const text = await fetch(path).then(r => r.text());
+      consume(text);
+    } finally {
+      card.classList.remove('is-loading');
+    }
   }
 
   async function loadUpload(file) {
-    $$('.data-card').forEach(c => c.classList.remove('is-selected'));
+    $$('.data-card').forEach(c => c.classList.remove('is-selected', 'is-loading'));
+    const card = $('.data-upload');
+    if (card) card.classList.add('is-selected', 'is-loading');
     file.target = null;
     state.source = `upload:${file.name}`;
     state.label  = file.name;
-    const text = await file.text();
-    consume(text);
+    try {
+      const text = await file.text();
+      consume(text);
+    } finally {
+      if (card) card.classList.remove('is-loading');
+    }
   }
 
   // ---------- validation + parsing ----------
@@ -288,9 +298,11 @@ Do NOT run a goodness-of-fit test; that will be done in scipy and the test wins.
   // ---------- scipy fits + tests ----------
   async function runScipyTests() {
     showStep('tests');
-    $('#tests-source').textContent = 'pyodide loading...';
+    const srcBadge = $('#tests-source');
+    srcBadge.innerHTML = '<span class="spinner sm"></span> loading scipy via Pyodide';
     const py = await window.Runtime.boot();
-    $('#tests-source').textContent = 'scipy.stats';
+    srcBadge.innerHTML = '<span class="spinner sm"></span> running goodness-of-fit tests';
+    await new Promise(r => setTimeout(r, 0));
 
     py.globals.set('SAMPLES', state.data);
     py.globals.set('CANDIDATES', state.candidates.map(c => c.name));
@@ -415,9 +427,10 @@ json.dumps({'results': results, 'winner': winner, 'qq': qq, 'all_passed': len(pa
     let out;
     try {
       out = JSON.parse(py.runPython(code));
+      srcBadge.textContent = 'scipy.stats';
     } catch (e) {
       console.error('scipy run failed', e);
-      $('#tests-source').textContent = 'error: ' + e.message;
+      srcBadge.textContent = 'error: ' + e.message;
       return;
     }
     state.fits   = out.results;

@@ -671,6 +671,7 @@ class Patient:
           <label class="ex-ctrl"><span>Beds</span><input type="number" id="orch-beds" value="4" min="1" max="8"></label>
           <button id="orch-run" class="ex-run-btn" type="button">▸ Run comparison</button>
         </div>
+        <div class="proc-bar" id="orch-bar" hidden></div>
         <div class="orf-status" id="orch-status">FIFO and Severity run with no key. Add a key to run the LLM policy live on the same seed.</div>
         <div class="orf-feed-wrap" id="orch-feed-wrap" style="display:none">
           <div class="orf-feed-label">LLM decision feed</div>
@@ -717,6 +718,7 @@ class Patient:
           <label class="ex-ctrl"><span>Beds</span><input type="number" id="pred-beds" value="4" min="1" max="8"></label>
           <button id="pred-run" class="ex-run-btn" type="button">▸ Run forecast</button>
         </div>
+        <div class="proc-bar" id="pred-bar" hidden></div>
         <div class="pred-status" id="pred-status">Runs the real ED model to build an event log. Add a key to have the LLM forecast the next window.</div>
         <div class="orf-feed-wrap"><div class="pe-label">Recent event log</div><div class="pe-log" id="pred-log"></div></div>
         <div id="pred-out" style="margin-top:14px"></div>

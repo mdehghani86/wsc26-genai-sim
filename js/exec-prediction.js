@@ -72,10 +72,12 @@ From the recent event log you predict the next time window. Arrivals are roughly
     if (busy) return;
     busy = true;
     const btn = $('pred-run'), status = $('pred-status'), logEl = $('pred-log'), out = $('pred-out');
+    const bar = $('pred-bar'); if (bar) bar.hidden = false;
+    const work = (msg) => { status.innerHTML = '<span class="spinner sm"></span> ' + msg; };
     btn.disabled = true; out.innerHTML = '';
     const p = params();
     try {
-      status.textContent = 'Running the ED model in your browser…';
+      work('Running the ED model in your browser (Pyodide + simpy on first run)…');
       const data = await EDRuntime.eventLog(p);
       const pts = data.patients;
       const lastArr = Math.max(...pts.map(x => x.arr));
@@ -96,7 +98,7 @@ From the recent event log you predict the next time window. Arrivals are roughly
         return;
       }
 
-      status.textContent = 'LLM forecasting the next window…';
+      work('LLM forecasting the next window…');
       const user =
         `Beds: ${p.beds}. Time now: t=${cut} min. Current census: ${census}/${p.beds} beds occupied.\n` +
         `Recent events (oldest first):\n${logText(ev, cut)}\n\n` +
@@ -118,6 +120,7 @@ From the recent event log you predict the next time window. Arrivals are roughly
     } catch (e) {
       status.innerHTML = '<span class="orf-err">' + (e && e.message ? e.message : e) + '</span>';
     } finally {
+      const bar = $('pred-bar'); if (bar) bar.hidden = true;
       btn.disabled = false; busy = false;
     }
   }

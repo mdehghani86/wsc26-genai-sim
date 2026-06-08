@@ -23,12 +23,31 @@
     document.querySelectorAll('.nav-item').forEach(n => {
       n.classList.toggle('active', n.dataset.route === route);
     });
+
+    // accordion: open the stage that owns the active sub-route, collapse the rest
+    const activeSub = document.querySelector('.nav-sub.active');
+    const activeStage = activeSub ? activeSub.closest('.nav-stage') : null;
+    if (activeStage) {
+      document.querySelectorAll('.nav-stage').forEach(s => s.classList.toggle('open', s === activeStage));
+    }
+
     if (window.scrollTo) window.scrollTo(0, 0);
 
     document.dispatchEvent(new CustomEvent('route:change', { detail: { route } }));
     document.dispatchEvent(new CustomEvent('route:' + route, { detail: { route } }));
   }
 
+  function initStageToggles() {
+    document.querySelectorAll('.nav-stage-head').forEach(h => {
+      h.addEventListener('click', () => {
+        const stage = h.closest('.nav-stage');
+        const willOpen = !stage.classList.contains('open');
+        document.querySelectorAll('.nav-stage').forEach(s => s.classList.remove('open'));
+        if (willOpen) stage.classList.add('open');
+      });
+    });
+  }
+
   window.addEventListener('hashchange', () => activate(readRoute()));
-  window.addEventListener('DOMContentLoaded', () => activate(readRoute()));
+  window.addEventListener('DOMContentLoaded', () => { initStageToggles(); activate(readRoute()); });
 })();

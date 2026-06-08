@@ -9,7 +9,8 @@
   const statusEl = () => document.getElementById('pyodide-status');
   const setStatus = (s, cls = '') => {
     const el = statusEl(); if (!el) return;
-    el.textContent = s;
+    const loading = /load|boot|install/i.test(s);
+    el.innerHTML = (loading ? '<span class="proc-dot"></span> ' : '') + s;
     el.className = 'foot-val ' + cls;
   };
 

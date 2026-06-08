@@ -117,12 +117,14 @@ Reply with the integer only -- no words, no punctuation, no explanation.`;
     const results = $('orch-results');
     const feedWrap = $('orch-feed-wrap');
     btn.disabled = true; feed.innerHTML = ''; results.innerHTML = '';
+    const bar = $('orch-bar'); if (bar) bar.hidden = false;
+    const work = (msg) => { status.innerHTML = '<span class="spinner sm"></span> ' + msg; };
     const p = params();
     const hasKey = LLM.hasKey();
     feedWrap.style.display = hasKey ? '' : 'none';
 
     try {
-      status.textContent = 'Loading the ED model in your browser…';
+      work('Loading the ED model in your browser (Pyodide + scipy + simpy on first run)…');
       const fifo = await EDRuntime.baseline('fifo', p);
       const sev = await EDRuntime.baseline('severity', p);
       const rows = [
@@ -131,9 +133,9 @@ Reply with the integer only -- no words, no punctuation, no explanation.`;
       ];
 
       if (hasKey) {
-        status.textContent = 'Running the LLM policy live on the same model…';
+        work('Running the LLM policy live on the same model…');
         const llm = await runLLMPolicy(p, feed, (n) => {
-          status.textContent = `LLM deciding admission ${n}… (one call per free-bed event)`;
+          work(`LLM deciding admission ${n}… (one call per free-bed event)`);
         });
         rows.push({ name: llm.tag + ' (live)', kpis: llm.kpis, latMs: llm.latMs });
         status.textContent = `Done. ${rows[2].name} made its admissions live; heuristics are instant.`;
@@ -144,6 +146,7 @@ Reply with the integer only -- no words, no punctuation, no explanation.`;
     } catch (e) {
       status.innerHTML = '<span class="orf-err">' + (e && e.message ? e.message : e) + '</span>';
     } finally {
+      const bar = $('orch-bar'); if (bar) bar.hidden = true;
       btn.disabled = false; busy = false;
     }
   }
