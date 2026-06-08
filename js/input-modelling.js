@@ -247,6 +247,8 @@ Do NOT run a goodness-of-fit test; that will be done in scipy and the test wins.
           backgroundColor: 'rgba(31,107,115,0.55)',
           borderColor:    'rgba(31,107,115,0.9)',
           borderWidth: 1,
+          categoryPercentage: 1.0,
+          barPercentage: 1.0,
         }],
       },
       options: {
@@ -255,7 +257,11 @@ Do NOT run a goodness-of-fit test; that will be done in scipy and the test wins.
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: { title: { display: true, text: 'inter-arrival time (min)' }, grid: { display: false } },
+          x: {
+            title: { display: true, text: 'inter-arrival time (min)' },
+            grid: { display: false },
+            ticks: { maxTicksLimit: 12, autoSkip: true, maxRotation: 0, minRotation: 0 },
+          },
           y: { title: { display: true, text: 'count' }, grid: { color: 'rgba(0,0,0,0.05)' } },
         },
       },
