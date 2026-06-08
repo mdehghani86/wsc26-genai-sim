@@ -565,6 +565,21 @@ a:hover { border-bottom-color: var(--ai); }
   color: var(--warm-mid); letter-spacing: 0.04em; text-transform: uppercase;
 }
 
+/* Methods & sources reference block on method pages */
+.method-refs {
+  margin-top: 22px; padding: 14px 18px;
+  background: var(--warm-card-2); border: 1px solid var(--warm-line2);
+  border-radius: var(--r-sm);
+}
+.method-refs .mr-label {
+  display: block; margin-bottom: 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--warm-mid);
+}
+.method-refs ul { margin: 0; padding: 0; list-style: none; }
+.method-refs li { font-size: 12.5px; color: var(--text-mut); padding: 3px 0; line-height: 1.45; }
+.method-refs li a { font-weight: 600; }
+
 /* SimGPT spotlight (Execution page) */
 .simgpt-spotlight {
   margin-top: 22px;

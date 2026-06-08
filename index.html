@@ -434,6 +434,14 @@
           </div>
         </div>
       </div>
+
+      <div class="method-refs">
+        <span class="mr-label">Methods &amp; sources</span>
+        <ul>
+          <li><a href="https://doi.org/10.1214/aoms/1177729437" target="_blank" rel="noopener">Anderson &amp; Darling (1952)</a> &mdash; the Anderson&ndash;Darling goodness-of-fit test (alongside Kolmogorov&ndash;Smirnov and Pearson's chi-square) used to accept or reject each candidate.</li>
+          <li><a href="https://arxiv.org/abs/2601.06543" target="_blank" rel="noopener">Chen et al. (2026)</a> &mdash; LLM-assisted, mechanism-faithful input and model translation for queueing simulations.</li>
+        </ul>
+      </div>
     </section>
 
     <!-- MODEL CREATION -->
@@ -599,6 +607,14 @@ class Patient:
           <div class="card-body">Three failed gate rounds escalate the case to the agentic-construction route. The LLM stops emitting one-shot files and instead issues typed calls (<code>define_resource</code>, <code>define_process</code>, <code>wire</code>, <code>run</code>, <code>query_kpis</code>) against a small simulation API. Feedback arrives at every step instead of after the whole file. See Section 5.3 of the paper.</div>
         </a>
       </div>
+
+      <div class="method-refs">
+        <span class="mr-label">Methods &amp; sources</span>
+        <ul>
+          <li><a href="https://arxiv.org/abs/2510.12399" target="_blank" rel="noopener">Ge et al. (2025)</a> &mdash; a survey of vibe coding with LLMs (one-shot file generation).</li>
+          <li><a href="https://arxiv.org/abs/2601.06543" target="_blank" rel="noopener">Chen et al. (2026)</a> &mdash; mechanism-faithful SimPy queueing models via staged LLM adaptation.</li>
+        </ul>
+      </div>
     </section>
 
     <!-- EXECUTION 2a: ENTITY CHARACTERIZATION -->
@@ -625,6 +641,14 @@ class Patient:
       </div>
 
       <p class="step-note" style="margin-top:18px;">The live-call alternative &mdash; invoking the LLM mid-run at every characterization event &mdash; is viable but more expensive; the cost, latency, and reproducibility trade-offs are common to all three Execution capabilities and are discussed in Section 6 of the <a href="paper.pdf" target="_blank" rel="noopener">paper</a>.</p>
+
+      <div class="method-refs">
+        <span class="mr-label">Methods &amp; sources</span>
+        <ul>
+          <li><a href="https://doi.org/10.1016/j.cie.2026.112104" target="_blank" rel="noopener">Dehghani (2026)</a> &mdash; SimGPT: assigning entity attributes from free-text case notes inside a running Simio model.</li>
+          <li>Wang et al. (2025) &mdash; agentic LLMs that tag and decide at the entity level, <em>Transportation Research Part C</em> 180:105307.</li>
+        </ul>
+      </div>
     </section>
 
     <!-- EXECUTION 2b: ORCHESTRATION -->
@@ -679,6 +703,16 @@ class Patient:
         </div>
         <div id="orch-results"></div>
       </div>
+
+      <div class="method-refs">
+        <span class="mr-label">Methods &amp; sources</span>
+        <ul>
+          <li><a href="https://arxiv.org/abs/2505.13761" target="_blank" rel="noopener">Kleiman et al. (2025)</a> &mdash; Simulation Agent: integrating an LLM decision-maker with a running simulation.</li>
+          <li><a href="https://arxiv.org/abs/2407.11384" target="_blank" rel="noopener">Quan &amp; Liu (2024)</a> &mdash; InvAgent: LLM agents deciding order quantities inside an inventory simulation.</li>
+          <li>Wang et al. (2025) &mdash; agentic LLMs for day-to-day route choice, <em>Transportation Research Part C</em> 180:105307.</li>
+          <li><a href="https://doi.org/10.1016/j.cie.2026.112104" target="_blank" rel="noopener">Dehghani (2026)</a> &mdash; SimGPT: LLM-in-the-loop decisions in a commercial DES (Simio).</li>
+        </ul>
+      </div>
     </section>
 
     <!-- EXECUTION 2c: PREDICTION -->
@@ -722,6 +756,14 @@ class Patient:
         <div class="pred-status" id="pred-status">Runs the real ED model to build an event log. Add a key to have the LLM forecast the next window.</div>
         <div class="orf-feed-wrap"><div class="pe-label">Recent event log</div><div class="pe-log" id="pred-log"></div></div>
         <div id="pred-out" style="margin-top:14px"></div>
+      </div>
+
+      <div class="method-refs">
+        <span class="mr-label">Methods &amp; sources</span>
+        <ul>
+          <li><a href="https://arxiv.org/abs/2601.06543" target="_blank" rel="noopener">Chen et al. (2026)</a> &mdash; mechanism-faithful queueing-model translation and event-log reasoning with LLM support.</li>
+          <li><a href="https://arxiv.org/abs/2505.13761" target="_blank" rel="noopener">Kleiman et al. (2025)</a> &mdash; Simulation Agent: LLMs reading simulation state to inform decisions.</li>
+        </ul>
       </div>
     </section>
 
@@ -819,6 +861,16 @@ class Patient:
       <div class="connect-bar" style="margin-top:18px">
         <div class="connect-key">Position</div>
         <div class="connect-val">PDEVS-LLM (WSC 2025) and SimLLM (Jan 2026) are the closest neighbours and remain code-generation-flavoured. This tab is the protocol-flavoured complement: instead of asking the LLM to emit a SimPy file, we expose a typed tool surface and let the LLM construct the model through calls.</div>
+      </div>
+
+      <div class="method-refs">
+        <span class="mr-label">Methods &amp; sources</span>
+        <ul>
+          <li><a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">Anthropic (2024)</a> &mdash; the Model Context Protocol open standard (tools, resources, prompts over JSON-RPC).</li>
+          <li><a href="https://arxiv.org/abs/2503.23278" target="_blank" rel="noopener">Hou et al. (2025)</a> &mdash; MCP landscape, security threats, and research directions.</li>
+          <li><a href="https://www.preprints.org/manuscript/202504.0245/v1" target="_blank" rel="noopener">Singh et al. (2025)</a> &mdash; a survey of the Model Context Protocol.</li>
+          <li>Vasa &amp; Sarjoughian (2025) &mdash; generative statecharts-driven PDEVS construction (WSC 2025); <a href="https://github.com/comses/PDLM" target="_blank" rel="noopener">code</a>.</li>
+        </ul>
       </div>
     </section>
 
