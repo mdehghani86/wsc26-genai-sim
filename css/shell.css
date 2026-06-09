@@ -572,18 +572,17 @@ a:hover { border-bottom-color: var(--ai); }
   text-transform: uppercase; letter-spacing: 0.06em; color: var(--warm-mid);
   padding-top: 3px; margin-bottom: 14px;
 }
-.authors-row { display: flex; gap: 28px; flex-wrap: wrap; }
-.author-card { display: flex; flex-direction: column; align-items: center; text-align: center; width: 132px; }
-.author-photo {
-  position: relative; width: 92px; height: 92px; border-radius: 50%;
-  background: var(--ai-soft); border: 1px solid var(--warm-line2);
-  overflow: hidden; display: flex; align-items: center; justify-content: center;
+.authors-figure { margin: 0; max-width: 460px; }
+.authors-figure img {
+  width: 100%; height: auto; display: block;
+  border-radius: var(--r); border: 1px solid var(--warm-line2);
   box-shadow: var(--shadow-1);
 }
-.author-initials { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 700; color: var(--ai); }
-.author-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.author-name { margin-top: 11px; font-size: 13.5px; font-weight: 600; color: var(--text); line-height: 1.25; }
-.author-aff { font-size: 11.5px; color: var(--text-dim); margin-top: 2px; }
+.authors-figure figcaption { margin-top: 11px; }
+.authors-names { font-size: 14px; color: var(--text); }
+.author-link { font-weight: 600; }
+a.author-link { color: var(--ai); }
+.authors-aff { display: block; font-size: 11.5px; color: var(--text-dim); margin-top: 3px; }
 
 /* Methods & sources reference block on method pages */
 .method-refs {
