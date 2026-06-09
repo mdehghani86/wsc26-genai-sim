@@ -186,47 +186,55 @@
         <div class="page-eyebrow">Companion application</div>
         <h1 class="page-title">A tutorial on Generative AI and Simulation Modeling Integration</h1>
         <p class="page-lede">A live, in-browser walk-through of the <strong>five-stage</strong> GenAI-driven simulation framework from the paper: Problem Formulation, Creation, Execution, Experimentation, and Evaluation. Each stage holds three rising-complexity LLM contributions. Every Python cell on this site runs in your browser via Pyodide — no backend, no installs.</p>
-        <div class="head-actions">
-          <a class="paper-pill" href="paper.pdf" target="_blank" rel="noopener">
-            <span class="pill-icon"></span>
-            <span>Read the paper</span>
-            <span class="pill-tag">PDF &middot; draft</span>
-          </a>
-        </div>
       </header>
+
+      <div class="paper-cta">
+        <a class="paper-pill paper-pill-lg" href="paper.pdf" target="_blank" rel="noopener">
+          <span class="pill-icon"></span>
+          <span>Read the paper</span>
+          <span class="pill-tag">PDF &middot; draft</span>
+        </a>
+      </div>
 
       <section class="cards">
         <a class="card" href="#/phase0">
+          <div class="card-icon ic-sim"><svg viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/></svg></div>
           <div class="card-tag">Phase 0</div>
           <div class="card-title">Problem formulation</div>
           <div class="card-body">A structured prompt that returns a three-row schema: problem, scope, KPIs. The artefact every later phase is judged against.</div>
         </a>
         <a class="card" href="#/input-modelling">
+          <div class="card-icon ic-ai"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8"/><rect x="12" y="6" width="3" height="12"/><rect x="17" y="13" width="3" height="5"/></svg></div>
           <div class="card-tag tag-active">Phase 1a &middot; live</div>
           <div class="card-title">Input modelling</div>
           <div class="card-body">Upload arrival data or pick a demo trace. The LLM proposes candidate distributions; scipy runs the chi-square, KS, and Anderson-Darling tests; the test wins.</div>
         </a>
         <a class="card" href="#/model-creation">
+          <div class="card-icon ic-ai"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M10 13l-2 2 2 2M14 13l2 2-2 2"/></svg></div>
           <div class="card-tag">Phase 1b</div>
           <div class="card-title">Model creation</div>
           <div class="card-body">From the Phase 0 schema and the Phase 1a fitted distribution, generate a runnable SimPy model via a five-row structured prompt (role, goal, scenario, inputs, output) protected by a five-check validation gate.</div>
         </a>
         <a class="card" href="#/mcp">
+          <div class="card-icon ic-ai"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/><path d="M11 7h3a3 3 0 0 1 3 3v3"/></svg></div>
           <div class="card-tag">Phase 1c</div>
           <div class="card-title">Agentic AI via MCP</div>
           <div class="card-body">Stage 1.3 — Agentic Construction. The LLM constructs the simulation by calling typed tools (define_resource, define_process, run, query_kpis) over the Model Context Protocol, instead of emitting a one-shot file.</div>
         </a>
         <a class="card" href="#/exec-entity">
+          <div class="card-icon ic-conv"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5z"/></svg></div>
           <div class="card-tag">Phase 2</div>
           <div class="card-title">Execution</div>
           <div class="card-body">Run the SimPy model and watch per-pool ρ, Lq, Wq update live with M/G/c theory comparison. Three LLM capabilities layer on top: Entity Characterization, Orchestration (LLM-in-the-loop bed assignment), Prediction.</div>
         </a>
         <a class="card" href="#/experimentation">
+          <div class="card-icon ic-sim"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5.2 9.4A1.5 1.5 0 0 0 6.1 21h11.8a1.5 1.5 0 0 0 1.3-2.6L14 9V3"/><path d="M7 14h10"/></svg></div>
           <div class="card-tag">Phase 3</div>
           <div class="card-title">Experimentation</div>
           <div class="card-body">Three rising-complexity contributions: Summary Generation (figure selection + narrative), Scenario Ideation (factors and levels from the brief), Optimisation (LLM-driven parameter search with explicit caveats).</div>
         </a>
         <a class="card" href="#/comparison">
+          <div class="card-icon ic-ai"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.2 1.6 2.7-.2.9 2.5 2.3 1.4-.9 2.6.9 2.6-2.3 1.4-.9 2.5-2.7-.2L12 21.5l-2.2-1.6-2.7.2-.9-2.5-2.3-1.4.9-2.6-.9-2.6 2.3-1.4.9-2.5 2.7.2z"/><path d="M9 12l2 2 4-4"/></svg></div>
           <div class="card-tag">Phase 4</div>
           <div class="card-title">Evaluation</div>
           <div class="card-body">Closes the loop with Reproducibility (every figure regenerable from the repo), Validation (cross-checks against M/G/c bounds and Arena/Simio), and Benchmarking (paired-seed frontier-LLM comparison).</div>
@@ -909,17 +917,26 @@ class Patient:
 
       <div class="authors">
         <div class="authors-label">Authors</div>
-        <figure class="authors-figure">
-          <img src="authors/authors.png" alt="Mohammad Dehghani, S. Belsare, and N. Sadeghi" />
-          <figcaption>
-            <span class="authors-names">
-              <span class="author-link" data-who="dehghani">Mohammad Dehghani</span> &middot;
-              <span class="author-link" data-who="belsare">S. Belsare</span> &middot;
-              <span class="author-link" data-who="sadeghi">N. Sadeghi</span>
-            </span>
-            <span class="authors-aff">left to right &middot; Northeastern University</span>
-          </figcaption>
-        </figure>
+        <div class="authors-block">
+          <figure class="authors-figure">
+            <img src="authors/authors.png" alt="Mohammad Dehghani, Sahil Belsare, and Negar Sadeghi" />
+          </figure>
+          <ul class="authors-list">
+            <li>
+              <span class="author-link" data-who="dehghani">Mohammad Dehghani</span>
+              <span class="author-aff2">Northeastern University</span>
+            </li>
+            <li>
+              <span class="author-link" data-who="belsare">Sahil Belsare</span>
+              <span class="author-aff2">Northeastern University</span>
+            </li>
+            <li>
+              <span class="author-link" data-who="sadeghi">Negar Sadeghi</span>
+              <span class="author-aff2">Northeastern University</span>
+            </li>
+            <li class="authors-hint">shown left to right</li>
+          </ul>
+        </div>
       </div>
 
       <div class="about-grid">

@@ -24,12 +24,11 @@
       n.classList.toggle('active', n.dataset.route === route);
     });
 
-    // accordion: open the stage that owns the active sub-route, collapse the rest
+    // accordion: open ONLY the stage that owns the active sub-route; any other
+    // route (a single-item phase, home, about) collapses every stage group.
     const activeSub = document.querySelector('.nav-sub.active');
     const activeStage = activeSub ? activeSub.closest('.nav-stage') : null;
-    if (activeStage) {
-      document.querySelectorAll('.nav-stage').forEach(s => s.classList.toggle('open', s === activeStage));
-    }
+    document.querySelectorAll('.nav-stage').forEach(s => s.classList.toggle('open', s === activeStage));
 
     if (window.scrollTo) window.scrollTo(0, 0);
 
