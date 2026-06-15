@@ -95,8 +95,14 @@ class ResourceStats:
     queue_count: int = 0
 
 def _expected_treatment(severity, s):
-    lo, mode, hi = s["critical_tri"] if severity >= s["critical_threshold"] else s["standard_tri"]
-    return lo + (hi - lo) * ((severity - s["severity_min"]) / max(1, s["severity_max"] - s["severity_min"]))
+    threshold = s["critical_threshold"]
+    if severity >= threshold:
+        lo, _, hi = s["critical_tri"]
+        mode = 25.0 + 5.0 * (severity - threshold)
+    else:
+        lo, _, hi = s["standard_tri"]
+        mode = 12.0 + 2.0 * (severity - s["severity_min"])
+    return (lo + mode + hi) / 3.0
 
 LOG_CAP = 4000  # per-rep cap so verbose runs do not balloon memory
 
@@ -113,8 +119,14 @@ def select_next(wl, strategy):
 
 def treat(env, p, s, log):
     rng = s["_rng"]; verbose = s["verbose"]
-    lo, mode, hi = s["critical_tri"] if p.bed_type == "critical" else s["standard_tri"]
-    d = rng.triangular(lo, hi, mode)  # fix: Python signature is (low, high, mode)
+    threshold = s["critical_threshold"]
+    if p.bed_type == "critical":
+        lo, _, hi = s["critical_tri"]
+        mode = 25.0 + 5.0 * (p.severity - threshold)
+    else:
+        lo, _, hi = s["standard_tri"]
+        mode = 12.0 + 2.0 * (p.severity - s["severity_min"])
+    d = rng.triangular(lo, hi, mode)  # Python signature is (low, high, mode)
     p.treatment_duration = d
     p.treatment_start = env.now
     _log(env, log, verbose, p.pid, f"treatment START ({p.bed_type}, dur={d:.2f})")
@@ -333,8 +345,8 @@ def aggregate(reps_json):
       const lambdaTotal  = 1 / arrival;
       const pCrit = (10 - 7 + 1) / 10; // severity >= 7
       const pStd  = 1 - pCrit;
-      const sCrit = triStats(20, 30, 45);
-      const sStd  = triStats(10, 15, 25);
+      const sCrit = triStats(20, 32.5, 45);  // avg mode across scores 7-10
+      const sStd  = triStats(10, 17,   25);  // avg mode across scores 1-6
       const thCrit = mGcTheory(lambdaTotal * pCrit, critBeds, sCrit.mean, sCrit.cs2);
       const thStd  = mGcTheory(lambdaTotal * pStd,  stdBeds,  sStd.mean,  sStd.cs2);
 

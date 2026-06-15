@@ -582,7 +582,7 @@ class Patient:
 
             <div class="ex-section-label">Per-pool comparison vs M/G/c theory</div>
             <div class="ex-theory-note">
-              <strong>Note on the theory column.</strong> The "Theory" values use the Allen-Cunneen M/G/c approximation. It is exact for M/M/c (Cs² = 1) and known to underestimate Wq by up to 25-30% for low-CV service distributions like the triangular(20,30,45) and triangular(10,15,25) used here (Cs² ≈ 0.026 and 0.035). When the simulation is above the theory by that margin, the simulation is the more accurate value, not a bug.
+              <strong>Note on the theory column.</strong> The "Theory" values use the Allen-Cunneen M/G/c approximation. It is exact for M/M/c (Cs² = 1) and known to underestimate Wq by up to 25-30% for low-CV service distributions like those used here — the severity-dependent triangular distributions average Cs² ≈ 0.025 (critical) and 0.031 (standard). When the simulation is above the theory by that margin, the simulation is the more accurate value, not a bug.
             </div>
             <div class="ex-pool-grid" id="ex-pool-grid"></div>
 
