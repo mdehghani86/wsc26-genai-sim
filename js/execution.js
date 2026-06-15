@@ -31,6 +31,18 @@
     return { mean, cs2 };
   }
 
+  // Compute first and second moments of an equal-weight mixture of triangular RVs.
+  // modes[] is the array of mode values; lo and hi are shared bounds.
+  // Uses the law of total variance: Var_mix = E[Var|S] + Var[E[S|S]]
+  function mixedTriStats(lo, hi, modes) {
+    const n = modes.length;
+    const perS = modes.map(m => triStats(lo, m, hi));
+    const eMean = perS.reduce((s, t) => s + t.mean, 0) / n;
+    const eE2   = perS.reduce((s, t) => s + t.cs2 * t.mean * t.mean + t.mean * t.mean, 0) / n;
+    const mixVar = eE2 - eMean * eMean;
+    return { mean: eMean, cs2: mixVar / (eMean * eMean) };
+  }
+
   function erlangC(c, rho) {
     // Probability of waiting in M/M/c.
     const a = c * rho;
@@ -348,8 +360,11 @@ def aggregate(reps_json):
       const lambdaTotal  = 1 / arrival;
       const pCrit = (10 - 7 + 1) / 10; // severity >= 7
       const pStd  = 1 - pCrit;
-      const sCrit = triStats(20, 32.5, 45);  // avg mode across scores 7-10
-      const sStd  = triStats(10, 17,   25);  // avg mode across scores 1-6
+      // Severity mixture moments: modes scale linearly with acuity per paper formula.
+      // Critical: mode = 25+5*(s-7) for s in {7,8,9,10} → [25,30,35,40]
+      // Standard: mode = 12+2*(s-1) for s in {1,2,3,4,5,6} → [12,14,16,18,20,22]
+      const sCrit = mixedTriStats(20, 45, [25, 30, 35, 40]);
+      const sStd  = mixedTriStats(10, 25, [12, 14, 16, 18, 20, 22]);
       const thCrit = mGcTheory(lambdaTotal * pCrit, critBeds, sCrit.mean, sCrit.cs2);
       const thStd  = mGcTheory(lambdaTotal * pStd,  stdBeds,  sStd.mean,  sStd.cs2);
 
