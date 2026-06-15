@@ -28,10 +28,11 @@ run_experiment({
 
 ## What it does
 
-* Patients arrive Poisson (exponential inter-arrival).
-* Severity in [1, 10] routes patients to one of two pools:
-  * Severity >= 7 -> critical care (triangular(20, 30, 45)).
-  * Severity <  7 -> standard beds  (triangular(10, 15, 25)).
+* Patients arrive Poisson (exponential inter-arrival, mean 6 min).
+* Severity score drawn uniformly from {1, …, 10} routes patients to one of two pools:
+  * Severity >= 7 → critical care (c=2): Tri(20, 25+5*(s-7), 45) min — mode 25 at score 7, 40 at score 10.
+  * Severity <  7 → standard beds (c=4): Tri(10, 12+2*(s-1), 25) min — mode 12 at score 1, 22 at score 6.
+* The mode scales linearly with acuity so higher-severity patients generate proportionally longer treatment times.
 * One SimPy worker process per bed slot, so a pool with capacity *c* serves *c* patients in parallel (the parallel-vs-sequential check).
 * Per-patient metrics: time in system, wait time, treatment time.
 * Per-pool metrics: realised utilisation, mean queue length, mean wait, served count.
