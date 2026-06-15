@@ -64,7 +64,7 @@ DEFAULTS = dict(
     arrival_mean=6.0, critical_beds=2, standard_beds=4,
     selection_strategy="FIFO", n_replications=1, duration=5000.0,
     severity_min=1, severity_max=10, critical_threshold=7,
-    critical_tri=(20, 30, 45), standard_tri=(10, 15, 25),
+    critical_tri=(20, None, 45), standard_tri=(10, None, 25),  # (lo, hi); mode is severity-dependent
     seed=42, verbose=False,
 )
 
@@ -114,6 +114,9 @@ def _log(env, log, verbose, pid, msg):
 
 def select_next(wl, strategy):
     if strategy == "FIFO": return wl.pop(0)
+    if strategy == "SeverityFirst":
+        idx = max(range(len(wl)), key=lambda i: (wl[i].severity, -wl[i].arrival_time))
+        return wl.pop(idx)
     idx = min(range(len(wl)), key=lambda i: wl[i].expected_treatment)
     return wl.pop(idx)
 

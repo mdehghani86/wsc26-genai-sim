@@ -21,10 +21,10 @@ where s is the patient's severity score and the mode scales linearly with acuity
 
 Selection strategies
 --------------------
-    "FIFO"                     : earliest arrival served first
-    "ShortestExpectedTreatment": severity-based proxy; lower severity (within
-                                 the same bed pool) implies shorter expected
-                                 treatment, served first
+    "FIFO"                     : earliest arrival served first (default)
+    "SeverityFirst"            : highest severity served first within each pool;
+                                 tie-break by arrival time (FIFO)
+    "ShortestExpectedTreatment": lowest expected treatment time served first
 
 Run
 ---
@@ -49,14 +49,14 @@ DEFAULT_SETTINGS: dict = {
     "arrival_mean":          6.0,        # minutes between arrivals (exp mean)
     "critical_beds":         2,
     "standard_beds":         4,
-    "selection_strategy":    "FIFO",     # or "ShortestExpectedTreatment"
+    "selection_strategy":    "FIFO",     # "FIFO" | "SeverityFirst" | "ShortestExpectedTreatment"
     "n_replications":        1,
     "duration":              500.0,      # simulated minutes
     "severity_min":          1,
     "severity_max":          10,
     "critical_threshold":    7,          # severity >= threshold -> critical
-    "critical_tri":          (20, 30, 45),
-    "standard_tri":          (10, 15, 25),
+    "critical_tri":          (20, None, 45),   # (lo, hi) bounds; mode is severity-dependent
+    "standard_tri":          (10, None, 25),   # (lo, hi) bounds; mode is severity-dependent
     "seed":                  42,
     "verbose":               True,
 }
@@ -131,6 +131,14 @@ def select_next_patient(waiting_list: list[Patient], strategy: str) -> Patient:
 
     if strategy == "FIFO":
         return waiting_list.pop(0)
+
+    if strategy == "SeverityFirst":
+        # Highest severity served first; tie-break by earliest arrival (FIFO).
+        idx = max(
+            range(len(waiting_list)),
+            key=lambda i: (waiting_list[i].severity, -waiting_list[i].arrival_time),
+        )
+        return waiting_list.pop(idx)
 
     if strategy == "ShortestExpectedTreatment":
         idx = min(
