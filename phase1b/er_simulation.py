@@ -15,8 +15,9 @@ Scenario
 --------
 Patients arrive following an exponential inter-arrival distribution (mean = 6 min).
 Each patient is triaged with a severity score in [1, 10]:
-    severity >= 7 -> CriticalCareBeds, treatment ~ triangular(20, 30, 45)
-    severity <  7 -> StandardBeds,     treatment ~ triangular(10, 15, 25)
+    severity >= 7 -> CriticalCareBeds, treatment ~ Tri(20, 25+5*(s-7), 45)
+    severity <  7 -> StandardBeds,     treatment ~ Tri(10, 12+2*(s-1), 25)
+where s is the patient's severity score and the mode scales linearly with acuity.
 
 Selection strategies
 --------------------
@@ -142,21 +143,19 @@ def select_next_patient(waiting_list: list[Patient], strategy: str) -> Patient:
 
 
 def _expected_treatment(severity: int, settings: dict) -> float:
-    """Severity-based proxy for expected treatment time.
+    """Mean of Tri(lo, mode(s), hi) where mode scales with severity score.
 
-    Within each bed pool, lower severity implies shorter expected treatment.
-    The absolute value is only used for sorting under
-    'ShortestExpectedTreatment'.
+    Returns (lo + mode + hi) / 3, the triangular mean, used only for
+    sorting under 'ShortestExpectedTreatment'.
     """
-    lo, mode, hi = (
-        settings["critical_tri"]
-        if severity >= settings["critical_threshold"]
-        else settings["standard_tri"]
-    )
-    span = hi - lo
-    s_min = settings["severity_min"]
-    s_max = settings["severity_max"]
-    return lo + span * ((severity - s_min) / max(1, s_max - s_min))
+    threshold = settings["critical_threshold"]
+    if severity >= threshold:
+        lo, _, hi = settings["critical_tri"]
+        mode = 25.0 + 5.0 * (severity - threshold)
+    else:
+        lo, _, hi = settings["standard_tri"]
+        mode = 12.0 + 2.0 * (severity - settings["severity_min"])
+    return (lo + mode + hi) / 3.0
 
 
 # ---------------------------------------------------------------------------
@@ -168,10 +167,12 @@ def treat_patient(env: simpy.Environment, patient: Patient, settings: dict,
     """Sample the treatment duration and time-out for it."""
     rng = settings["_rng"]
     if patient.bed_type == "critical":
-        lo, mode, hi = settings["critical_tri"]
+        lo, _, hi = settings["critical_tri"]
+        mode = 25.0 + 5.0 * (patient.severity - settings["critical_threshold"])
     else:
-        lo, mode, hi = settings["standard_tri"]
-    duration = rng.triangular(lo, hi, mode)  # fix: Python signature is (low, high, mode)
+        lo, _, hi = settings["standard_tri"]
+        mode = 12.0 + 2.0 * (patient.severity - settings["severity_min"])
+    duration = rng.triangular(lo, hi, mode)  # Python signature is (low, high, mode)
     patient.treatment_duration = duration
     patient.treatment_start = env.now
     _log(env, log, patient.pid,
