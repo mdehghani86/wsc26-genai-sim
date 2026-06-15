@@ -283,11 +283,11 @@
             <thead><tr><th>Element</th><th>Statement</th></tr></thead>
             <tbody>
               <tr><td class="phase0-rowlabel"><span class="phase0-rownum">1</span>Problem definition</td>
-                  <td>Reduce length of stay in the emergency department and identify whether triage-rule changes or staffing changes deliver the larger improvement under fluctuating arrival rates.</td></tr>
+                  <td>Reduce length of stay in the emergency department and identify whether triage-rule changes or staffing changes deliver the larger improvement.</td></tr>
               <tr><td class="phase0-rowlabel"><span class="phase0-rownum">2</span>Scope &amp; boundaries</td>
-                  <td>From walk-in arrival to admit-or-discharge. Two triage tiers (urgent, non-urgent), a shared imaging and laboratory pool, and fixed bed pools. Ambulance routing, no-shows, and inpatient bed flow are out of scope.</td></tr>
+                  <td>From walk-in arrival to immediate departure after treatment. Patients arrive Poisson (Exp mean 6 min) and are assigned a severity score 1–10; scores &ge;7 route to critical-care beds (c=2) and the rest to standard beds (c=4). Patients depart immediately after treatment. Ambulance routing, no-shows, imaging, and inpatient bed flow are out of scope.</td></tr>
               <tr><td class="phase0-rowlabel"><span class="phase0-rownum">3</span>KPIs</td>
-                  <td>Mean and 95th-percentile length of stay; door-to-doctor time per triage tier; bed and imaging utilisation; daily throughput.</td></tr>
+                  <td>Mean and 95th-percentile length of stay; mean wait time per triage tier; bed utilisation; throughput.</td></tr>
             </tbody>
           </table>
         </div>
@@ -476,8 +476,8 @@
           <div class="prompt-five">
             <div class="prompt-row"><span class="prompt-key">Role</span><span class="prompt-val">Simulation engineer.</span></div>
             <div class="prompt-row"><span class="prompt-key">Goal</span><span class="prompt-val">Produce a runnable SimPy file for the Phase 0 problem.</span></div>
-            <div class="prompt-row"><span class="prompt-key">Scenario</span><span class="prompt-val">ED with two triage tiers (urgent, non-urgent), shared imaging, fixed bed pools. Walk-in arrival to admit-or-discharge. Ambulance routing, no-shows, and inpatient bed flow are out of scope (copied from the Phase 0 scope row).</span></div>
-            <div class="prompt-row"><span class="prompt-key">Inputs</span><span class="prompt-val">Arrival generator from Phase 1a (a single Python expression). Service-time distributions: triangular for treatment, gamma for imaging.</span></div>
+            <div class="prompt-row"><span class="prompt-key">Scenario</span><span class="prompt-val">ED with two bed pools: critical-care (c=2, severity &ge;7) and standard (c=4, severity &lt;7). Patients arrive Poisson, are triaged on a 1–10 severity scale, join the appropriate FIFO queue, receive treatment, and depart immediately. Ambulance routing, no-shows, and imaging are out of scope (copied from the Phase 0 scope row).</span></div>
+            <div class="prompt-row"><span class="prompt-key">Inputs</span><span class="prompt-val">Arrival generator from Phase 1a (a single Python expression). Service-time distribution: triangular with severity-dependent mode — Tri(20, 25+5(s&minus;7), 45) for critical, Tri(10, 12+2(s&minus;1), 25) for standard.</span></div>
             <div class="prompt-row"><span class="prompt-key">Output</span><span class="prompt-val">One Python file, no dependencies beyond SimPy and the standard library. One <code>simpy.Resource</code> per pool, one worker process per server slot, per-patient and per-pool metrics, an event log.</span></div>
           </div>
         </div>
@@ -524,7 +524,7 @@ class Patient:
         </div>
         <div class="step-body">
           <ul class="validate-list">
-            <li class="ok"><strong>Process logic.</strong> Patient flow matches the Phase 0 scope row end to end (walk-in &rarr; triage &rarr; treatment &rarr; admit-or-discharge).</li>
+            <li class="ok"><strong>Process logic.</strong> Patient flow matches the Phase 0 scope row end to end (walk-in &rarr; triage &rarr; treatment &rarr; immediate departure).</li>
             <li class="ok"><strong>Connectivity.</strong> Each producer wires into the declared consumer; no orphan resources.</li>
             <li class="ok"><strong>Parallel vs sequential.</strong> A pool with capacity <em>c</em> serves <em>c</em> patients in parallel; not one at a time behind a manager process. (One SimPy worker process per bed slot.)</li>
             <li class="ok"><strong>Distributions.</strong> Sampled service times match the Phase 1a fit in mean, variance, and support.</li>
