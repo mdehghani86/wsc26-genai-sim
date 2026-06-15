@@ -587,9 +587,9 @@ a.author-link { color: var(--ai); }
 .authors-hint { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--warm-mid); margin-top: 4px; }
 
 /* Overview: centered prominent paper CTA */
-.paper-cta { display: flex; justify-content: center; align-items: center; gap: 14px; flex-wrap: wrap; margin: 6px 0 26px; }
-.paper-pill-lg { transform: scale(1.12); }
-.paper-pill-lg:hover { transform: scale(1.12) translateY(-1px); }
+.paper-cta { display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; margin: 6px 0 26px; }
+.paper-pill-lg { padding: 9px 18px 9px 14px; font-size: 14px; }
+.paper-pill-lg:hover { transform: translateY(-1px); }
 .code-pill { border-color: var(--ai); color: var(--ai); }
 .code-pill:hover { background: var(--ai); color: #fff; }
 
