@@ -258,6 +258,7 @@
 }
 .btn-view-code:hover { opacity: 0.88; transform: translateY(-1px); }
 .btn-view-code svg { flex-shrink: 0; }
+.btn-view-code { margin-bottom: 14px; }
 
 .snippet-frame {
   background: var(--text);
