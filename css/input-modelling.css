@@ -242,6 +242,23 @@
 }
 .verdict-block strong { color: var(--ai); }
 
+/* View SimPy Code button in Phase 1b Step 2 */
+.btn-view-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: var(--r-sm);
+  background: var(--ai);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 120ms, transform 120ms;
+}
+.btn-view-code:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-view-code svg { flex-shrink: 0; }
+
 .snippet-frame {
   background: var(--text);
   border-radius: var(--r-sm);
